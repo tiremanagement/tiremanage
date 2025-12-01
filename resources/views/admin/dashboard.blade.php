@@ -5,18 +5,20 @@
 @section('content')
 
 <style>
-    /* Restore rich background for Dashboard only */
+    /* Light dashboard backdrop with subtle blobs */
     body {
-        background:
-            linear-gradient(135deg, rgba(90, 90, 90, 0.78), rgba(42, 42, 42, 0.78)),
-            url("{{ asset('assets/images/background.jpg') }}") no-repeat center center fixed;
-        background-size: cover;
+        background: #f7f9fb;
+        background-image:
+            radial-gradient(at 20% 20%, rgba(59, 130, 246, 0.08) 0, transparent 35%),
+            radial-gradient(at 70% 10%, rgba(16, 185, 129, 0.08) 0, transparent 32%),
+            radial-gradient(at 40% 70%, rgba(236, 72, 153, 0.07) 0, transparent 30%);
+        color: #111827;
     }
 
     h2, h3 {
         font-family: 'Poppins', sans-serif;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.35);
-        color: #ffffff;
+        color: #0f172a;
+        text-shadow: none;
     }
 
     /* Stats cards */
@@ -26,42 +28,43 @@
         display: flex;
         align-items: center;
         gap: 1rem;
-        padding: 1.25rem 1.1rem;
+        padding: 1.15rem 1rem;
         border-radius: 14px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow);
-        transition: transform .18s ease, box-shadow .2s ease, background-color .2s ease;
+        background: #ffffff;
+        border: 1px solid #e6e9f1;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease;
         cursor: pointer;
         text-decoration: none;
         color: inherit;
     }
-    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(17,24,39,.1); }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(17,24,39,.1); border-color: #d7dce8; }
     .stat-card:active { transform: translateY(-1px); }
 
     .stat-icon {
-        width: 48px; height: 48px; min-width: 48px;
+        width: 44px; height: 44px; min-width: 44px;
         border-radius: 12px;
         display: grid; place-items: center;
         color: #fff;
         box-shadow: 0 10px 18px rgba(17,24,39,.12);
+        font-size: 1.25rem;
     }
     .stat-content { flex: 1; }
-    .stat-label { margin: 0; font-size: .95rem; color: var(--muted); font-weight: 600; letter-spacing: .2px; }
-    .stat-value { margin: 2px 0 0; font-size: 1.8rem; font-weight: 800; color: var(--text); line-height: 1.1; }
+    .stat-label { margin: 0; font-size: .95rem; color: #8a94a6; font-weight: 600; letter-spacing: .2px; }
+    .stat-value { margin: 2px 0 0; font-size: 1.55rem; font-weight: 800; color: #111827; line-height: 1.1; }
 
     /* Color variants */
-    .stat-primary  { border-top: 3px solid var(--primary); }
-    .stat-success  { border-top: 3px solid var(--success); }
-    .stat-warning  { border-top: 3px solid var(--warning); }
-    .stat-danger   { border-top: 3px solid var(--danger); }
-    .stat-indigo   { border-top: 3px solid #6366f1; }
+    .stat-primary  { border-top: 4px solid #3b82f6; }
+    .stat-success  { border-top: 4px solid #22c55e; }
+    .stat-warning  { border-top: 4px solid #f59e0b; }
+    .stat-danger   { border-top: 4px solid #ef4444; }
+    .stat-indigo   { border-top: 4px solid #8b5cf6; }
 
-    .icon-primary  { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .icon-success  { background: linear-gradient(135deg, #34d399, #10b981); }
+    .icon-primary  { background: linear-gradient(135deg, #4f8df9, #2563eb); }
+    .icon-success  { background: linear-gradient(135deg, #4ade80, #16a34a); }
     .icon-warning  { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
     .icon-danger   { background: linear-gradient(135deg, #f87171, #ef4444); }
-    .icon-indigo   { background: linear-gradient(135deg, #818cf8, #6366f1); }
+    .icon-indigo   { background: linear-gradient(135deg, #a78bfa, #7c3aed); }
 
     /* Table styling */
     table {
@@ -121,7 +124,7 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-3 stats-grid">
     <div class="col">
         <a class="stat-card stat-primary" href="{{ route('admin.vehicles.index') }}">
-            <div class="stat-icon icon-primary"><i class="bi bi-truck"></i></div>
+            <div class="stat-icon icon-primary"><i class="bi bi-car-front"></i></div>
             <div class="stat-content">
                 <p class="stat-label">Total Vehicles</p>
                 <p class="stat-value">{{ $vehicles_count }}</p>
@@ -130,7 +133,7 @@
     </div>
     <div class="col">
         <a class="stat-card stat-success" href="{{ route('admin.tires.index') }}">
-            <div class="stat-icon icon-success"><i class="bi bi-speedometer2"></i></div>
+            <div class="stat-icon icon-success"><i class="bi bi-life-preserver"></i></div>
             <div class="stat-content">
                 <p class="stat-label">Total Tyres</p>
                 <p class="stat-value">{{ $tires_count }}</p>
@@ -139,7 +142,7 @@
     </div>
     <div class="col">
         <a class="stat-card stat-indigo" href="{{ route('admin.suppliers.index') }}">
-            <div class="stat-icon icon-indigo"><i class="bi bi-building"></i></div>
+            <div class="stat-icon icon-indigo"><i class="bi bi-person-lines-fill"></i></div>
             <div class="stat-content">
                 <p class="stat-label">Suppliers</p>
                 <p class="stat-value">{{ $suppliers_count }}</p>
@@ -148,10 +151,10 @@
     </div>
     <div class="col">
         <a class="stat-card stat-primary" href="{{ route('admin.reports.index') }}">
-            <div class="stat-icon icon-primary"><i class="bi bi-file-earmark-arrow-down"></i></div>
+            <div class="stat-icon icon-primary"><i class="bi bi-file-earmark-text"></i></div>
             <div class="stat-content">
                 <p class="stat-label">Reports</p>
-                <p class="stat-value"><i class="bi bi-download"></i></p>
+                <p class="stat-value">Download</p>
             </div>
         </a>
     </div>
@@ -168,7 +171,7 @@
 
 {{-- Vehicles --}}
 <h3>Vehicles</h3>
-<a href="{{ route('admin.vehicles.create') }}" class="btn btn-primary btn-elevated mb-2"><i class="bi bi-plus-lg"></i> Add Vehicle</a>
+<a href="{{ route('admin.vehicles.create') }}" class="btn btn-primary btn-elevated mb-2"><i class="bi bi-car-front"></i> Add Vehicle</a>
 <table>
     <thead>
         <tr>
@@ -215,7 +218,7 @@
 
 {{-- Tires --}}
 <h3>Tyres</h3>
-<a href="{{ route('admin.tires.create') }}" class="btn btn-success btn-elevated mb-2"><i class="bi bi-plus-circle"></i> Add Tyre</a>
+<a href="{{ route('admin.tires.create') }}" class="btn btn-success btn-elevated mb-2"><i class="bi bi-life-preserver"></i> Add Tyre</a>
 <table>
     <thead>
         <tr>
@@ -254,7 +257,7 @@
 
 {{-- Suppliers --}}
 <h3>Suppliers</h3>
-<a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary btn-elevated mb-2"><i class="bi bi-building-add"></i> Add Supplier</a>
+<a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary btn-elevated mb-2"><i class="bi bi-person-plus"></i> Add Supplier</a>
 <table>
     <thead>
         <tr>
@@ -262,7 +265,7 @@
             <th>Contact</th>
             <th>Address</th>
             <th>Town</th>
-            <th></th>Actions</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -337,8 +340,7 @@
 
 {{-- Simple JS for card click feedback --}}
 <script>
-    const cards = document.querySelectorAll('.card');
-    cards.forEach(card => {
+    document.querySelectorAll('.stat-card').forEach(card => {
         card.addEventListener('mouseenter', () => card.style.cursor = 'pointer');
     });
 </script>
