@@ -24,6 +24,10 @@ class DashboardController extends Controller
         $tires      = Tire::with('supplier')->get();
         $suppliers  = Supplier::all();
         $drivers    = Driver::with('user')->get();
+        $recentRequests = TireRequest::with(['user', 'vehicle', 'tire'])
+            ->latest()
+            ->take(15)
+            ->get();
 
         // Count all pending requests (any level)
         $pending_requests = TireRequest::where('status', Approval::STATUS_PENDING)->count()
@@ -39,6 +43,7 @@ class DashboardController extends Controller
             'suppliers_count'   => $suppliers->count(),
             'drivers'           => $drivers,
             'drivers_count'     => $drivers->count(),
+            'recentRequests'    => $recentRequests,
             'pending_requests'  => $pending_requests,
         ]);
     }

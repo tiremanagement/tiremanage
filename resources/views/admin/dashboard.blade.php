@@ -3,9 +3,22 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
+@php
+    $statusLabels = [
+        \App\Models\Approval::STATUS_PENDING => ['label' => 'Pending', 'class' => 'warning'],
+        \App\Models\Approval::STATUS_PENDING_MECHANIC => ['label' => 'Pending - Mechanic', 'class' => 'info'],
+        \App\Models\Approval::STATUS_PENDING_TRANSPORT => ['label' => 'Pending - Transport', 'class' => 'secondary'],
+        \App\Models\Approval::STATUS_APPROVED => ['label' => 'Approved', 'class' => 'success'],
+        \App\Models\Approval::STATUS_APPROVED_BY_MANAGER => ['label' => 'Approved by Manager', 'class' => 'success'],
+        \App\Models\Approval::STATUS_APPROVED_BY_MECHANIC => ['label' => 'Approved by Mechanic', 'class' => 'success'],
+        \App\Models\Approval::STATUS_APPROVED_BY_TRANSPORT => ['label' => 'Approved by Transport', 'class' => 'success'],
+        \App\Models\Approval::STATUS_REJECTED => ['label' => 'Rejected', 'class' => 'danger'],
+        \App\Models\Approval::STATUS_REJECTED_BY_MECHANIC => ['label' => 'Rejected by Mechanic', 'class' => 'danger'],
+        \App\Models\Approval::STATUS_REJECTED_BY_TRANSPORT => ['label' => 'Rejected by Transport', 'class' => 'danger'],
+    ];
+@endphp
 
 <style>
-    /* Light dashboard backdrop with subtle blobs */
     body {
         background: #f7f9fb;
         background-image:
@@ -53,7 +66,6 @@
     .stat-label { margin: 0; font-size: .95rem; color: #8a94a6; font-weight: 600; letter-spacing: .2px; }
     .stat-value { margin: 2px 0 0; font-size: 1.55rem; font-weight: 800; color: #111827; line-height: 1.1; }
 
-    /* Color variants */
     .stat-primary  { border-top: 4px solid #3b82f6; }
     .stat-success  { border-top: 4px solid #22c55e; }
     .stat-warning  { border-top: 4px solid #f59e0b; }
@@ -66,55 +78,71 @@
     .icon-danger   { background: linear-gradient(135deg, #f87171, #ef4444); }
     .icon-indigo   { background: linear-gradient(135deg, #a78bfa, #7c3aed); }
 
-    /* Table styling */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 30px;
+    /* Tab shell */
+    .tab-shell {
+        border-radius: 16px;
+        border: 1px solid #dbe4f2;
+        box-shadow: 0 16px 48px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+        background: #fefefe;
+    }
+
+    .dashboard-tabs .nav-link {
+        border: none;
+        border-radius: 10px 10px 0 0;
+        padding: 0.85rem 0.75rem;
+        font-weight: 700;
+        color: #0f172a;
+        background: linear-gradient(180deg, #e7effc, #d5e3fa);
+        transition: all .18s ease;
+    }
+
+    .dashboard-tabs .nav-link:hover { color: #0b6edb; }
+
+    .dashboard-tabs .nav-link.active {
+        color: #ffffff;
+        background: linear-gradient(180deg, #0ba6df, #0b6edb);
+        box-shadow: inset 0 -4px 0 rgba(255,255,255,0.12), 0 14px 24px rgba(11,166,223,0.35);
+    }
+
+    .tab-pane {
+        border-top: 1px solid #e2e8f3;
+        padding-top: 1rem;
+    }
+
+    .search-block .input-group-text {
+        background: #ffffff;
+        border-right: none;
+    }
+    .search-block .form-control {
+        border-left: none;
+    }
+
+    .table-modern {
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        background: #fefefe;
-        color: #333;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+        background: #fff;
+    }
+    .table-modern thead th {
+        background: #f1f5f9;
+        color: #0f172a;
+        font-weight: 700;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .table-modern tbody tr:hover { background: #f8fafc; }
+    .table-modern tbody td { vertical-align: middle; }
+
+    .badge-soft {
+        border: 1px solid currentColor;
+        background: rgba(255,255,255,.3);
     }
 
-    th {
-        background: #0BA6DF;
-        color: #fff;
-        padding: 12px;
-        text-align: center;
-    }
+    .btn-elevated { box-shadow: 0 12px 24px rgba(13,110,253,.22); }
 
-    td {
-        padding: 10px;
-        text-align: center;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    tr:hover {
-        background: #f0f4f8;
-        transform: scale(1.01);
-        transition: all 0.2s ease;
-    }
-
-    /* Buttons: use global theme from layout; only tweak spacing on this page */
-    .btn { padding: 0.55rem 0.95rem; }
-    .btn-sm { padding: 0.35rem 0.6rem; font-weight: 600; }
-
-    /* Hover card effect */
-    .hover-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .hover-card:hover {
-        transform: translateY(-5px) scale(1.05);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    }
-
-    /* Responsive */
     @media (max-width: 768px) {
-        .row { flex-direction: column; }
-        .card { flex: 1 1 100%; }
-        th, td { font-size: 0.85rem; padding: 8px; }
+        .dashboard-tabs .nav-link { font-size: .95rem; }
+        .search-block .input-group { flex-wrap: nowrap; }
     }
 </style>
 
@@ -169,180 +197,344 @@
     </div>
 </div>
 
-{{-- Vehicles --}}
-<h3>Vehicles</h3>
-<a href="{{ route('admin.vehicles.create') }}" class="btn btn-primary btn-elevated mb-2"><i class="bi bi-car-front"></i> Add Vehicle</a>
-<table>
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>Model</th>
-            <th>Plate Number</th>
-            <th>Branch</th>
-            <th>Vehicle Type</th>
-            <th>Brand</th>
-            <th>User Section</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($vehicles as $vehicle)
-        <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ $vehicle->model }}</td>
-            <td>{{ $vehicle->plate_no }}</td>
-            <td>{{ $vehicle->branch }}</td>
-            <td>{{ $vehicle->vehicle_type }}</td>
-            <td>{{ $vehicle->brand }}</td>
-            <td>{{ $vehicle->user_section }}</td>
-            <td>
-                <div class="action-buttons">
-                    <a href="{{ route('admin.vehicles.edit', $vehicle->id) }}" class="btn btn-outline-primary btn-icon btn-sm" data-bs-toggle="tooltip" title="Edit">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <form action="{{ route('admin.vehicles.destroy', $vehicle->id) }}" method="POST" style="display:inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-icon btn-sm" data-bs-toggle="tooltip" title="Delete" onclick="return confirm('Delete this vehicle?')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
-                </div>
-            </td>
-        </tr>
-        @empty
-        <tr><td colspan="8">No vehicles found.</td></tr>
-        @endforelse
-    </tbody>
-</table>
+{{-- Tabbed tables --}}
+<div class="tab-shell">
+    <ul class="nav nav-tabs nav-justified dashboard-tabs px-3 pt-3" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehiclesPane" type="button" role="tab" aria-controls="vehiclesPane" aria-selected="true">
+                Vehicles
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tyres-tab" data-bs-toggle="tab" data-bs-target="#tyresPane" type="button" role="tab" aria-controls="tyresPane" aria-selected="false">
+                Tyres
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="drivers-tab" data-bs-toggle="tab" data-bs-target="#driversPane" type="button" role="tab" aria-controls="driversPane" aria-selected="false">
+                Drivers
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="suppliers-tab" data-bs-toggle="tab" data-bs-target="#suppliersPane" type="button" role="tab" aria-controls="suppliersPane" aria-selected="false">
+                Suppliers
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requestsPane" type="button" role="tab" aria-controls="requestsPane" aria-selected="false">
+                Requests
+            </button>
+        </li>
+    </ul>
 
-{{-- Tires --}}
-<h3>Tyres</h3>
-<a href="{{ route('admin.tires.create') }}" class="btn btn-success btn-elevated mb-2"><i class="bi bi-life-preserver"></i> Add Tyre</a>
-<table>
-    <thead>
-        <tr>
-            <th>Brand</th>
-            <th>Size</th>
-            <th>Supplier Name</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($tires as $tire)
-        <tr>
-            <td>{{ $tire->brand }}</td>
-            <td>{{ $tire->size }}</td>
-            <td>{{ $tire->supplier->name ?? 'N/A' }}</td>
-            <td>
-                <div class="action-buttons">
-                    <a href="{{ route('admin.tires.edit', $tire->id) }}" class="btn btn-outline-primary btn-icon btn-sm" data-bs-toggle="tooltip" title="Edit">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <form action="{{ route('admin.tires.destroy', $tire->id) }}" method="POST" style="display:inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-icon btn-sm" data-bs-toggle="tooltip" title="Delete" onclick="return confirm('Delete this tyre?')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+    <div class="tab-content p-3" id="dashboardTabsContent">
+        {{-- Vehicles --}}
+        <div class="tab-pane fade show active" id="vehiclesPane" role="tabpanel" aria-labelledby="vehicles-tab">
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3 search-block">
+                <div class="flex-grow-1" style="min-width: 260px;">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search by plate number or model..." data-table-filter="#vehiclesTable">
+                        <button class="btn btn-outline-primary" type="button" data-filter-button="#vehiclesTable">Search</button>
+                    </div>
                 </div>
-            </td>
-        </tr>
-        @empty
-    <tr><td colspan="4">No tyres found.</td></tr>
-        @endforelse
-    </tbody>
-</table>
+                <a href="{{ route('admin.vehicles.create') }}" class="btn btn-primary btn-elevated">
+                    <i class="bi bi-plus-lg me-1"></i> Add Vehicle
+                </a>
+            </div>
 
-{{-- Suppliers --}}
-<h3>Suppliers</h3>
-<a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary btn-elevated mb-2"><i class="bi bi-person-plus"></i> Add Supplier</a>
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Contact</th>
-            <th>Address</th>
-            <th>Town</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($suppliers as $supplier)
-        <tr>
-            <td>{{ $supplier->name }}</td>
-            <td>{{ $supplier->contact }}</td>
-            <td>{{ $supplier->address }}</td>
-            <td>{{ $supplier->town }}</td>
-            <td>
-                <div class="action-buttons">
-                    <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="btn btn-outline-primary btn-icon btn-sm" data-bs-toggle="tooltip" title="Edit">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <form action="{{ route('admin.suppliers.destroy', $supplier->id) }}" method="POST" style="display:inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-icon btn-sm" data-bs-toggle="tooltip" title="Delete" onclick="return confirm('Delete this supplier?')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+            <div class="table-responsive table-modern">
+                <table class="table table-hover align-middle mb-0 text-center" id="vehiclesTable">
+                    <thead>
+                        <tr>
+                            <th style="width:10%;">No</th>
+                            <th>Model</th>
+                            <th>Plate Number</th>
+                            <th>Branch</th>
+                            <th>Vehicle Type</th>
+                            <th>Brand</th>
+                            <th>User Section</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($vehicles as $vehicle)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $vehicle->model }}</td>
+                                <td><span class="badge text-bg-light border fw-semibold">{{ $vehicle->plate_no }}</span></td>
+                                <td><span class="badge bg-secondary-subtle text-secondary border">{{ $vehicle->branch }}</span></td>
+                                <td><span class="badge bg-info-subtle text-info border">{{ $vehicle->vehicle_type }}</span></td>
+                                <td><span class="badge bg-dark-subtle text-dark border">{{ $vehicle->brand }}</span></td>
+                                <td>{{ $vehicle->user_section }}</td>
+                                <td>
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{{ route('admin.vehicles.edit', $vehicle->id) }}" class="btn btn-outline-primary btn-icon btn-sm" data-bs-toggle="tooltip" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form action="{{ route('admin.vehicles.destroy', $vehicle->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure to delete this vehicle?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger btn-icon btn-sm" data-bs-toggle="tooltip" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="8" class="py-4 text-muted">No vehicles found.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Tyres --}}
+        <div class="tab-pane fade" id="tyresPane" role="tabpanel" aria-labelledby="tyres-tab">
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3 search-block">
+                <div class="flex-grow-1" style="min-width: 260px;">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search by brand, size, or supplier..." data-table-filter="#tyresTable">
+                        <button class="btn btn-outline-primary" type="button" data-filter-button="#tyresTable">Search</button>
+                    </div>
                 </div>
-            </td>
-        </tr>
-        @empty
-    <tr><td colspan="5">No suppliers found.</td></tr>
-        @endforelse
-    </tbody>
-</table>
+                <a href="{{ route('admin.tires.create') }}" class="btn btn-success btn-elevated">
+                    <i class="bi bi-plus-circle me-1"></i> Add Tyre
+                </a>
+            </div>
 
-{{-- Drivers --}}
-<h3>Drivers</h3>
-<a href="{{ route('admin.drivers.create') }}" class="btn btn-primary btn-elevated mb-2"><i class="bi bi-person-plus"></i> Add Driver</a>
-<table>
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Full Name</th>
-            <th>Mobile</th>
-            <th>ID Number</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($drivers as $driver)
-        <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ $driver->user->name ?? 'N/A' }}</td>
-            <td>{{ $driver->user->email ?? 'N/A' }}</td>
-            <td>{{ $driver->full_name }}</td>
-            <td>{{ $driver->mobile }}</td>
-            <td>{{ $driver->id_number }}</td>
-            <td>
-                <div class="action-buttons">
-                    <form action="{{ route('admin.drivers.destroy', $driver->id) }}" method="POST" style="display:inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-icon btn-sm" data-bs-toggle="tooltip" title="Delete" onclick="return confirm('Delete this driver?')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+            <div class="table-responsive table-modern">
+                <table class="table table-hover align-middle mb-0 text-center" id="tyresTable">
+                    <thead>
+                        <tr>
+                            <th>Brand</th>
+                            <th>Size</th>
+                            <th>Supplier</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($tires as $tire)
+                            <tr>
+                                <td class="tyre-brand">{{ $tire->brand }}</td>
+                                <td class="tyre-size">{{ $tire->size }}</td>
+                                <td class="tyre-supplier">{{ $tire->supplier->name ?? 'N/A' }}</td>
+                                <td>
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{{ route('admin.tires.edit', $tire->id) }}" class="btn btn-outline-primary btn-icon btn-sm" data-bs-toggle="tooltip" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form action="{{ route('admin.tires.destroy', $tire->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this tyre?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger btn-icon btn-sm" data-bs-toggle="tooltip" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="py-4 text-muted">No tyres found.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Drivers --}}
+        <div class="tab-pane fade" id="driversPane" role="tabpanel" aria-labelledby="drivers-tab">
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3 search-block">
+                <div class="flex-grow-1" style="min-width: 260px;">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search by name or username..." data-table-filter="#driversTable">
+                        <button class="btn btn-outline-primary" type="button" data-filter-button="#driversTable">Search</button>
+                    </div>
                 </div>
-            </td>
-        </tr>
-        @empty
-        <tr><td colspan="7">No drivers found.</td></tr>
-        @endforelse
-    </tbody>
-</table>
+                <a href="{{ route('admin.drivers.create') }}" class="btn btn-primary btn-elevated">
+                    <i class="bi bi-person-plus me-1"></i> Add Driver
+                </a>
+            </div>
 
-{{-- Simple JS for card click feedback --}}
+            <div class="table-responsive table-modern">
+                <table class="table table-hover align-middle mb-0 text-center" id="driversTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Full Name</th>
+                            <th>Mobile</th>
+                            <th>ID Number</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($drivers as $driver)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $driver->user->name ?? 'N/A' }}</td>
+                                <td>{{ $driver->user->email ?? 'N/A' }}</td>
+                                <td>{{ $driver->full_name ?? 'N/A' }}</td>
+                                <td><span class="badge text-bg-light border fw-semibold">{{ $driver->mobile ?? 'N/A' }}</span></td>
+                                <td><span class="badge bg-secondary-subtle text-secondary border">{{ $driver->id_number ?? 'N/A' }}</span></td>
+                                <td>
+                                    <form action="{{ route('admin.drivers.destroy', $driver->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this driver?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-icon btn-sm" data-bs-toggle="tooltip" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="7" class="py-4 text-muted">No drivers found.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Suppliers --}}
+        <div class="tab-pane fade" id="suppliersPane" role="tabpanel" aria-labelledby="suppliers-tab">
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3 search-block">
+                <div class="flex-grow-1" style="min-width: 260px;">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search by name or contact..." data-table-filter="#suppliersTable">
+                        <button class="btn btn-outline-primary" type="button" data-filter-button="#suppliersTable">Search</button>
+                    </div>
+                </div>
+                <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary btn-elevated">
+                    <i class="bi bi-building-add me-1"></i> Add Supplier
+                </a>
+            </div>
+
+            <div class="table-responsive table-modern">
+                <table class="table table-hover align-middle mb-0 text-center" id="suppliersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            <th>Address</th>
+                            <th>Town</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($suppliers as $supplier)
+                            <tr>
+                                <td class="supplier-name">{{ $supplier->name }}</td>
+                                <td class="supplier-contact">{{ $supplier->contact }}</td>
+                                <td class="supplier-address">{{ $supplier->address }}</td>
+                                <td class="supplier-town">{{ $supplier->town }}</td>
+                                <td>
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="btn btn-outline-primary btn-icon btn-sm" data-bs-toggle="tooltip" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form action="{{ route('admin.suppliers.destroy', $supplier->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this supplier?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger btn-icon btn-sm" data-bs-toggle="tooltip" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="py-4 text-muted">No suppliers found.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Requests --}}
+        <div class="tab-pane fade" id="requestsPane" role="tabpanel" aria-labelledby="requests-tab">
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3 search-block">
+                <div class="flex-grow-1" style="min-width: 260px;">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search by driver, vehicle, or tyre..." data-table-filter="#requestsTable">
+                        <button class="btn btn-outline-primary" type="button" data-filter-button="#requestsTable">Search</button>
+                    </div>
+                </div>
+                <a href="{{ route('admin.request.pending') }}" class="btn btn-outline-dark">
+                    <i class="bi bi-arrow-right-circle me-1"></i> Pending Queue
+                </a>
+            </div>
+
+            <div class="table-responsive table-modern">
+                <table class="table table-hover align-middle mb-0 text-center" id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Driver</th>
+                            <th>Vehicle</th>
+                            <th>Tyre</th>
+                            <th>Count</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentRequests as $request)
+                            @php
+                                $statusMeta = $statusLabels[$request->status] ?? ['label' => ucfirst(str_replace('_', ' ', $request->status)), 'class' => 'secondary'];
+                            @endphp
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $request->user->name ?? $request->driver->full_name ?? 'N/A' }}</td>
+                                <td>{{ $request->vehicle->plate_no ?? 'N/A' }}</td>
+                                <td>{{ trim(($request->tire->brand ?? 'N/A').' '.$request->tire->size) }}</td>
+                                <td><span class="badge bg-primary-subtle text-primary border">{{ $request->tire_count ?? '-' }}</span></td>
+                                <td>
+                                    <span class="badge bg-{{ $statusMeta['class'] }}-subtle text-{{ $statusMeta['class'] }} border">{{ $statusMeta['label'] }}</span>
+                                </td>
+                                <td>{{ optional($request->created_at)->format('Y-m-d') }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="7" class="py-4 text-muted">No requests found.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
 <script>
-    document.querySelectorAll('.stat-card').forEach(card => {
-        card.addEventListener('mouseenter', () => card.style.cursor = 'pointer');
+    // Lightweight table filter that works per-tab
+    const applyFilter = (selector, term) => {
+        const rows = document.querySelectorAll(`${selector} tbody tr`);
+        const query = term.trim().toLowerCase();
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-table-filter]').forEach(input => {
+            const target = input.dataset.tableFilter;
+            const handler = () => applyFilter(target, input.value);
+            input.addEventListener('input', handler);
+
+            const button = input.closest('.input-group')?.querySelector(`[data-filter-button="${target}"]`);
+            if (button) button.addEventListener('click', handler);
+        });
+
+        if (window.bootstrap && bootstrap.Tooltip) {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+        }
     });
 </script>
-
-@endsection
+@endpush
