@@ -1,22 +1,20 @@
 #!/bin/bash
 set -e
 
-cd /var/www/tiremanage
+APP_DIR=/var/www/tiremanage
+cd $APP_DIR
 
-composer install --no-dev --optimize-autoloader
-
-# migrations (if database migation force don't the configuration stop
+git pull origin main
+composer install --no-dev --optimize-autoloader --no-interaction
 php artisan migrate --force || true
 
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan optimize:clear
+php artisan optimize
 
-# web servers need foldeer permissions
-chown -R nginx:nginx storage bootstrap/cache
+chown -R dpd:nginx storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
 systemctl restart php-fpm
-systemctl reload nginx
+systemctl restart nginx
 
-echo "Deploy completed ✅"
+echo "Deploy completed at $(date) ✅"
