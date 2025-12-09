@@ -30,4 +30,5 @@ jobs:
 
       - name: Deploy to Server
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "sudo /var/www/tiremanage/deploy.sh"
+          ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "sudo /var/www/tiremanage/deploy.sh"
+
