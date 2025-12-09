@@ -8,52 +8,20 @@
 
 @push('styles')
 <style>
-    .vehicle-create-shell { position: relative; padding: 1.75rem 0 2.75rem; background: #f6f8fb; }
-    .vehicle-create-shell::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background:
-            radial-gradient(520px 360px at 12% 14%, rgba(59,130,246,.08), transparent 60%),
-            radial-gradient(520px 360px at 86% 12%, rgba(74,222,128,.06), transparent 60%),
-            radial-gradient(640px 480px at 45% 70%, rgba(14,165,233,.05), transparent 70%);
-        z-index: 0;
-        pointer-events: none;
-    }
+    .vehicle-create-shell { position: relative; padding: 1.75rem 0 2.75rem; background: linear-gradient(180deg, #eef3fb 0%, #fdfefe 70%); }
+    .vehicle-create-shell::before { content: none; }
     .vehicle-create-card {
         position: relative;
         overflow: hidden;
-        background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(248,251,255,.99));
-        border-radius: 22px;
-        border: 1px solid rgba(12, 74, 165, 0.1);
-        box-shadow: 0 18px 48px rgba(15, 23, 42, 0.14);
-        padding: 2.4rem 2.25rem 2.1rem;
+        background: #ffffff;
+        border-radius: 18px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+        padding: 2.3rem 2.1rem 2.1rem;
         isolation: isolate;
     }
     .vehicle-create-card::before,
-    .vehicle-create-card::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-repeat: no-repeat;
-        z-index: -1;
-    }
-    .vehicle-create-card::before {
-        background-image:
-            linear-gradient(120deg, rgba(42, 121, 255, .2), rgba(56, 189, 248, .22)),
-            linear-gradient(120deg, rgba(74, 222, 128, .2), rgba(59, 130, 246, .18));
-        background-size: 260px 540px, 220px 460px;
-        background-position: -40px 6px, calc(100% - 70px) 130px;
-        opacity: .78;
-    }
-    .vehicle-create-card::after {
-        background-image:
-            radial-gradient(220px 140px at 18% 78%, rgba(59, 130, 246, .12), transparent 70%),
-            radial-gradient(260px 160px at 74% 35%, rgba(74, 222, 128, .12), transparent 70%),
-            radial-gradient(180px 120px at 55% 62%, rgba(14, 165, 233, .12), transparent 75%);
-        opacity: .7;
-        filter: blur(.3px);
-    }
+    .vehicle-create-card::after { content: none; }
     .vehicle-title {
         font-weight: 800;
         color: #0b4fb4;

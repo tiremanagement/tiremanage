@@ -139,6 +139,17 @@
     }
 
     .btn-elevated { box-shadow: 0 12px 24px rgba(13,110,253,.22); }
+    .btn-add {
+        background: linear-gradient(90deg, #0ba6df, #0b6edb);
+        border-color: #0b6edb;
+        color: #fff !important;
+        box-shadow: 0 12px 24px rgba(11, 110, 219, 0.28);
+    }
+    .btn-add:hover {
+        background: linear-gradient(90deg, #0a8dc4, #0a5ec0);
+        border-color: #0a5ec0;
+        color: #fff !important;
+    }
 
     @media (max-width: 768px) {
         .dashboard-tabs .nav-link { font-size: .95rem; }
@@ -238,7 +249,7 @@
                         <button class="btn btn-outline-primary" type="button" data-filter-button="#vehiclesTable">Search</button>
                     </div>
                 </div>
-                <a href="{{ route('admin.vehicles.create') }}" class="btn btn-primary btn-elevated">
+                <a href="{{ route('admin.vehicles.create') }}" class="btn btn-add btn-elevated">
                     <i class="bi bi-plus-lg me-1"></i> Add Vehicle
                 </a>
             </div>
@@ -300,7 +311,7 @@
                         <button class="btn btn-outline-primary" type="button" data-filter-button="#tyresTable">Search</button>
                     </div>
                 </div>
-                <a href="{{ route('admin.tires.create') }}" class="btn btn-success btn-elevated">
+                <a href="{{ route('admin.tires.create') }}" class="btn btn-add btn-elevated">
                     <i class="bi bi-plus-circle me-1"></i> Add Tyre
                 </a>
             </div>
@@ -354,7 +365,7 @@
                         <button class="btn btn-outline-primary" type="button" data-filter-button="#driversTable">Search</button>
                     </div>
                 </div>
-                <a href="{{ route('admin.drivers.create') }}" class="btn btn-primary btn-elevated">
+                <a href="{{ route('admin.drivers.create') }}" class="btn btn-add btn-elevated">
                     <i class="bi bi-person-plus me-1"></i> Add Driver
                 </a>
             </div>
@@ -409,7 +420,7 @@
                         <button class="btn btn-outline-primary" type="button" data-filter-button="#suppliersTable">Search</button>
                     </div>
                 </div>
-                <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary btn-elevated">
+                <a href="{{ route('admin.suppliers.create') }}" class="btn btn-add btn-elevated">
                     <i class="bi bi-building-add me-1"></i> Add Supplier
                 </a>
             </div>
