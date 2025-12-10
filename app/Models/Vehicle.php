@@ -25,11 +25,11 @@ class Vehicle extends Model
 
     protected $fillable = [
         'plate_no',
-        'model',
         'branch',
         'is_registered',
         'vehicle_type',
         'brand',
         'user_section',
+        'driver_id_number',
     ];
 }

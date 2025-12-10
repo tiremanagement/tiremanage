@@ -60,18 +60,18 @@ public function index(Request $request)
         $noDigits = 'regex:/^[^0-9]*$/';
 
         $request->validate([
-            'model'     => ['required','string','max:255',$noDigits],
             'plate_no'  => 'required|string|max:50|unique:vehicles,plate_no',
             'branch'    => ['required','string','max:100',$noDigits],
             'vehicle_type' => ['nullable','string','max:100',$noDigits],
             'brand'        => ['nullable','string','max:100',$noDigits],
             'user_section' => ['nullable','string','max:150',$noDigits],
+            'driver_id_number' => 'nullable|string|max:100|exists:drivers,id_number',
         ], [
-            'model.regex' => 'Model must not contain numbers.',
             'branch.regex' => 'Branch must not contain numbers.',
             'vehicle_type.regex' => 'Vehicle type must not contain numbers.',
             'brand.regex' => 'Brand must not contain numbers.',
             'user_section.regex' => 'User section must not contain numbers.',
+            'driver_id_number.exists' => 'Driver ID number does not match any registered driver.',
         ]);
 
         // Normalize plate number (uppercase, trim spaces)
@@ -85,13 +85,13 @@ public function index(Request $request)
         }
 
         Vehicle::create([
-            'model'        => $request->model,
             'plate_no'     => $plateNo,
             'branch'       => $request->branch,
             'is_registered'=> $request->is_registered ?? false,
             'vehicle_type' => $request->vehicle_type,
             'brand'        => $request->brand,
             'user_section' => $request->user_section,
+            'driver_id_number' => $request->driver_id_number,
         ]);
 
         // ✅ Redirect based on role
@@ -118,28 +118,28 @@ public function index(Request $request)
         $noDigits = 'regex:/^[^0-9]*$/';
 
         $request->validate([
-            'model'    => ['required','string','max:255',$noDigits],
             'plate_no' => 'required|string|max:50|unique:vehicles,plate_no,' . $vehicle->id,
             'branch'   => ['required','string','max:255',$noDigits],
             'vehicle_type' => ['nullable','string','max:100',$noDigits],
             'brand'        => ['nullable','string','max:100',$noDigits],
             'user_section' => ['nullable','string','max:150',$noDigits],
+            'driver_id_number' => 'nullable|string|max:100|exists:drivers,id_number',
         ], [
-            'model.regex' => 'Model must not contain numbers.',
             'branch.regex' => 'Branch must not contain numbers.',
             'vehicle_type.regex' => 'Vehicle type must not contain numbers.',
             'brand.regex' => 'Brand must not contain numbers.',
             'user_section.regex' => 'User section must not contain numbers.',
+            'driver_id_number.exists' => 'Driver ID number does not match any registered driver.',
         ]);
 
         $vehicle->update([
-            'model'        => $request->model,
             'plate_no'     => strtoupper(trim($request->plate_no)),
             'branch'       => $request->branch,
             'is_registered'=> $request->is_registered ?? $vehicle->is_registered,
             'vehicle_type' => $request->vehicle_type,
             'brand'        => $request->brand,
             'user_section' => $request->user_section,
+            'driver_id_number' => $request->driver_id_number,
         ]);
 
         $route = auth()->user()->role->name === 'Admin'
@@ -186,10 +186,10 @@ public function index(Request $request)
             'id'       => $vehicle->getKey(),
             'plate_no' => $vehicle->plate_no,
             'branch'   => $vehicle->branch,
-            'model'    => $vehicle->model,
             'vehicle_type' => $vehicle->vehicle_type,
             'brand'        => $vehicle->brand,
             'user_section' => $vehicle->user_section,
+            'driver_id_number' => $vehicle->driver_id_number,
         ]);
     }
 }

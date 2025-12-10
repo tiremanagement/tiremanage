@@ -157,23 +157,11 @@
             @csrf
             <div class="row g-4">
                 <div class="col-12 vehicle-field">
-                    <label for="model" class="form-label">Model*</label>
-                    <input type="text" name="model" id="model"
-                           class="form-control @error('model') is-invalid @enderror"
-                           value="{{ old('model') }}"
-                           placeholder="Enter vehicle model" required
-                           pattern="^[^0-9]*$" title="Model must not contain numbers">
-                    @error('model')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-12 vehicle-field">
-                    <label for="plate_no" class="form-label">Registration Number*</label>
+                    <label for="plate_no" class="form-label">Plate number*</label>
                     <input type="text" name="plate_no" id="plate_no"
                            class="form-control text-uppercase @error('plate_no') is-invalid @enderror"
                            value="{{ old('plate_no') }}"
-                           placeholder="Enter registration number (e.g. ABC123)" required>
+                           placeholder="Enter plate number (e.g. ABC123)" required>
                     @error('plate_no')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -196,7 +184,7 @@
                     <input type="text" name="vehicle_type" id="vehicle_type"
                            class="form-control @error('vehicle_type') is-invalid @enderror"
                            value="{{ old('vehicle_type') }}"
-                           placeholder="e.g. Car, Van, Truck"
+                           placeholder="Car, Van, Truck"
                            pattern="^[^0-9]*$" title="Vehicle type must not contain numbers">
                     @error('vehicle_type')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -208,13 +196,24 @@
                     <input type="text" name="brand" id="brand"
                            class="form-control @error('brand') is-invalid @enderror"
                            value="{{ old('brand') }}"
-                           placeholder="e.g. Toyota, Nissan, Honda"
+                           placeholder="e.g. Honda Civic, Toyota Corolla, KDH Van"
                            pattern="^[^0-9]*$" title="Brand must not contain numbers">
                     @error('brand')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
+                <div class="col-12 vehicle-field">
+                    <label for="driver_id_number" class="form-label">Driver ID number</label>
+                    <input type="text" name="driver_id_number" id="driver_id_number"
+                           class="form-control @error('driver_id_number') is-invalid @enderror"
+                           value="{{ old('driver_id_number') }}"
+                           placeholder="Driver ID number (as provided during driver registration)">
+                    @error('driver_id_number')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
                 <div class="col-12 vehicle-field">
                     <label for="user_section" class="form-label">User Section</label>
                     <input type="text" name="user_section" id="user_section"

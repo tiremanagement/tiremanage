@@ -18,7 +18,7 @@
     <thead class="table-dark">
         <tr>
             <th style="width: 10%;">No</th>
-            <th style="width: 25%;">Model</th>
+            <th style="width: 25%;">Driver ID</th>
             <th style="width: 25%;">Plate Number</th>
             <th style="width: 15%;">Branch</th>
             <th style="width: 15%;">Vehicle Type</th>
@@ -31,7 +31,7 @@
         @forelse($vehicles as $vehicle)
         <tr>
             <td>{{ $loop->iteration }}</td>
-            <td>{{ $vehicle->model }}</td>
+            <td>{{ $vehicle->driver_id_number }}</td>
             <td>{{ $vehicle->plate_no }}</td>
             <td>{{ $vehicle->branch }}</td>
             <td>{{ $vehicle->vehicle_type }}</td>

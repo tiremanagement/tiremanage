@@ -268,7 +268,8 @@ public function storeDriver(Request $request)
     $user = User::create([
         'name' => $request->name,
         'email' => $request->email,
-        'password' => Hash::make('12345678'), // default password
+        // Set initial password to the driver's ID number (hashed)
+        'password' => Hash::make($request->id_number),
         'role_id' => $driverRole->id,
         'must_change_password' => true,
     ]);

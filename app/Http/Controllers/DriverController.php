@@ -58,7 +58,8 @@ class DriverController extends Controller
         $newUser = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make('12345678'),
+            // Set initial password to the driver's ID number (hashed)
+            'password' => Hash::make($request->id_number),
             'role_id' => $driverRole->id,
             'must_change_password' => true,
         ]);

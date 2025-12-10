@@ -26,10 +26,10 @@
 
 <form action="{{ route($isAdmin ? 'admin.vehicles.index' : 'section_manager.vehicles.index') }}" method="GET" class="mb-3">
   <div class="row g-2 align-items-center">
-    <div class="col-sm-8 col-md-6">
+        <div class="col-sm-8 col-md-6">
       <div class="input-group input-group-sm">
         <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
-        <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search by plate number or model">
+        <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search by plate number or driver ID">
         @if(request('search'))
           <a href="{{ route($isAdmin ? 'admin.vehicles.index' : 'section_manager.vehicles.index') }}" class="btn btn-outline-secondary">Reset</a>
         @endif
@@ -54,7 +54,7 @@
       <thead>
         <tr>
           <th style="width:10%">No</th>
-          <th>Model</th>
+          <th>Driver ID</th>
           <th>Plate Number</th>
           <th>Branch</th>
           <th>Vehicle Type</th>
@@ -67,7 +67,7 @@
         @forelse($vehicles as $vehicle)
         <tr>
           <td>{{ $loop->iteration }}</td>
-          <td>{{ $vehicle->model }}</td>
+          <td>{{ $vehicle->driver_id_number }}</td>
           <td><span class="badge text-bg-light border fw-semibold">{{ $vehicle->plate_no }}</span></td>
           <td><span class="badge bg-secondary-subtle text-secondary border">{{ $vehicle->branch }}</span></td>
           <td><span class="badge bg-info-subtle text-info border">{{ $vehicle->vehicle_type }}</span></td>

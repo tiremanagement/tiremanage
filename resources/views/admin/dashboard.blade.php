@@ -243,9 +243,9 @@
         <div class="tab-pane fade show active" id="vehiclesPane" role="tabpanel" aria-labelledby="vehicles-tab">
             <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3 search-block">
                 <div class="flex-grow-1" style="min-width: 260px;">
-                    <div class="input-group shadow-sm">
+                        <div class="input-group shadow-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" placeholder="Search by plate number or model..." data-table-filter="#vehiclesTable">
+                        <input type="text" class="form-control" placeholder="Search by plate number or driver ID..." data-table-filter="#vehiclesTable">
                         <button class="btn btn-outline-primary" type="button" data-filter-button="#vehiclesTable">Search</button>
                     </div>
                 </div>
@@ -259,7 +259,7 @@
                     <thead>
                         <tr>
                             <th style="width:10%;">No</th>
-                            <th>Model</th>
+                            <th>Driver ID</th>
                             <th>Plate Number</th>
                             <th>Branch</th>
                             <th>Vehicle Type</th>
@@ -272,7 +272,7 @@
                         @forelse($vehicles as $vehicle)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $vehicle->model }}</td>
+                                <td>{{ $vehicle->driver_id_number }}</td>
                                 <td><span class="badge text-bg-light border fw-semibold">{{ $vehicle->plate_no }}</span></td>
                                 <td><span class="badge bg-secondary-subtle text-secondary border">{{ $vehicle->branch }}</span></td>
                                 <td><span class="badge bg-info-subtle text-info border">{{ $vehicle->vehicle_type }}</span></td>

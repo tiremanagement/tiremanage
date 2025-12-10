@@ -10,11 +10,11 @@ class VehiclesExport implements FromCollection, WithHeadings
 {
     public function collection()
     {
-        return Vehicle::select('id', 'plate_no', 'model', 'branch', 'is_registered')->get();
+        return Vehicle::select('id', 'plate_no', 'driver_id_number', 'branch', 'is_registered')->get();
     }
 
     public function headings(): array
     {
-        return ['ID', 'Plate No', 'Model', 'Branch', 'Is Registered'];
+        return ['ID', 'Plate No', 'Driver ID', 'Branch', 'Is Registered'];
     }
 }
