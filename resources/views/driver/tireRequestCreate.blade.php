@@ -2,16 +2,119 @@
 
 @section('title', 'Request a Tyre')
 
-@section('content')
-<div class="container">
-    <h2 class="mb-4">Request a Tyre</h2>
+@push('styles')
+<style>
+    .tyre-request-shell {
+        position: relative;
+        padding: 1.75rem 0 2.75rem;
+        background: linear-gradient(180deg, #eef3fb 0%, #fdfefe 70%);
+    }
+    .tyre-request-shell::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(520px 360px at 12% 14%, rgba(59,130,246,.12), transparent 60%),
+            radial-gradient(520px 360px at 86% 12%, rgba(74,222,128,.1), transparent 60%),
+            radial-gradient(640px 480px at 45% 70%, rgba(14,165,233,.08), transparent 70%);
+        z-index: 0;
+        pointer-events: none;
+    }
+    .tyre-panel {
+        position: relative;
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.10);
+        padding: 1.8rem 1.6rem 1.6rem;
+        max-width: 1040px;
+        margin: 0 auto;
+        z-index: 1;
+    }
+    .tyre-title {
+        text-align: center;
+        color: #0b4fb4;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        letter-spacing: .2px;
+    }
+    .tyre-form { max-width: 980px; margin: 0 auto; }
+    .tyre-field label {
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: .3rem;
+        letter-spacing: .15px;
+    }
+    .tyre-field .form-control,
+    .tyre-field textarea {
+        background: #f1f5f9;
+        border: 1px solid #d3dded;
+        border-radius: 10px;
+        padding: .85rem 1rem;
+        font-size: 1rem;
+        transition: border-color .12s ease, box-shadow .12s ease, background-color .12s ease;
+    }
+    .tyre-field .form-control:focus,
+    .tyre-field textarea:focus {
+        border-color: #0b4fb4;
+        box-shadow: 0 0 0 .18rem rgba(11, 79, 180, .14);
+        background: #ffffff;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    .tyre-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        padding-top: 1rem;
+        flex-wrap: wrap;
+    }
+    .tyre-actions .btn {
+        min-width: 126px;
+        border-radius: 10px;
+        padding: .7rem 1.15rem;
+        font-weight: 800;
+        letter-spacing: .12px;
+    }
+    .tyre-actions .btn-primary {
+        background: linear-gradient(90deg, #0ba6df, #0b6edb);
+        border-color: #0b6edb;
+        color: #ffffff;
+        box-shadow: 0 12px 24px rgba(11, 110, 219, 0.28);
+    }
+    .tyre-actions .btn-primary:hover {
+        background: linear-gradient(90deg, #0a8dc4, #0a5ec0);
+        border-color: #0a5ec0;
+        color: #ffffff;
+    }
+    .tyre-actions .btn-secondary {
+        background: #9ca3af;
+        border-color: #9ca3af;
+        color: #ffffff;
+    }
+    .tyre-actions .btn-secondary:hover { background: #6b7280; border-color: #6b7280; color: #ffffff; }
+    .alert-tyre {
+        border-radius: 12px;
+        box-shadow: 0 12px 20px rgba(0,0,0,.08);
+    }
+    .helper-text { color: #6b7280; font-weight: 600; margin-top: .25rem; }
+    @media (max-width: 768px) {
+        .tyre-panel { padding: 1.8rem 1.1rem; }
+        .tyre-actions { flex-direction: column; align-items: stretch; }
+        .tyre-actions .btn { width: 100%; }
+    }
+</style>
+@endpush
+
 
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success alert-tyre">{{ session('success') }}</div>
     @endif
 
-    <form action="{{ route('driver.requests.store') }}" method="POST" enctype="multipart/form-data">
-        @csrf
+
+    <div class="tyre-panel">
+        <h2 class="tyre-title">Request a Tyre</h2>
+
 
         @php
             $vehicles = \App\Models\Vehicle::orderBy('plate_no')->get();
@@ -155,6 +258,7 @@
         </div>
 
     </form>
+
 </div>
 @endsection
 
@@ -243,30 +347,24 @@ document.addEventListener('DOMContentLoaded', function(){
     const lastDateInput = document.getElementById('last_tire_replacement_date');
     if (lastDateInput) {
         const now = new Date();
-        // compute threshold: 3 months ago
         const threshold = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-        // require strictly older than 3 months -> set max to the day before threshold
         threshold.setDate(threshold.getDate() - 1);
         const isoMax = threshold.toISOString().split('T')[0];
         lastDateInput.max = isoMax;
 
-        // Add a small hint below the input
         const hint = document.createElement('small');
         hint.className = 'text-muted d-block';
         hint.textContent = 'Please enter a date older than 3 months (latest allowed: ' + isoMax + ').';
         lastDateInput.parentNode.appendChild(hint);
 
-        // Prevent form submission if the date is not older than 3 months (client-side check)
         const form = lastDateInput.closest('form');
         if (form) {
             form.addEventListener('submit', function (e) {
                 const val = lastDateInput.value;
-                if (val) {
-                    if (val >= lastDateInput.max) {
-                        e.preventDefault();
-                        alert('Last Tire Replacement Date must be older than 3 months.');
-                        lastDateInput.focus();
-                    }
+                if (val && val >= lastDateInput.max) {
+                    e.preventDefault();
+                    alert('Last Tire Replacement Date must be older than 3 months.');
+                    lastDateInput.focus();
                 }
             });
         }
