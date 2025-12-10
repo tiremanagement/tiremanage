@@ -28,9 +28,9 @@
     {{-- Driver Navbar --}}
     <nav class="navbar navbar-expand-lg navbar-dark driver-navbar fixed-top">
         <div class="container">
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('driver.dashboard') }}">
-                <img src="{{ asset('assets/images/logo2.png') }}" alt="logo"
-                     style="height:36px; width:auto; margin-right:15px; margin-bottom: 4px;">
+             <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('driver.dashboard') }}">
+             <img src="{{ asset('assets/images/logo2.png') }}" alt="logo"
+                 style="height:36px; width:auto; margin-right:15px; margin-bottom: 4px;">
                 <span>Driver Dashboard</span>
             </a>
 

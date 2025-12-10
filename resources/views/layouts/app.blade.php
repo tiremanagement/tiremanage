@@ -40,7 +40,24 @@
     <!-- Responsive Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('driver.dashboard') }}">
+            @php
+                $homeUrl = route('login');
+                if (Auth::check() && Auth::user()->role) {
+                    $roleName = strtolower(trim(Auth::user()->role->name));
+                    if (str_contains($roleName, 'admin')) {
+                        $homeUrl = route('admin.dashboard');
+                    } elseif (str_contains($roleName, 'driver')) {
+                        $homeUrl = route('driver.dashboard');
+                    } elseif (str_contains($roleName, 'section')) {
+                        $homeUrl = route('section_manager.dashboard');
+                    } elseif (str_contains($roleName, 'mechanic')) {
+                        $homeUrl = route('mechanic_officer.pending');
+                    } elseif (str_contains($roleName, 'transport')) {
+                        $homeUrl = route('transport_officer.dashboard');
+                    }
+                }
+            @endphp
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ $homeUrl }}">
                 <img src="{{ asset('assets/images/logo2.png') }}" alt="SLTMOBITEL Logo">
                 <span>SLTMOBITEL</span>
             </a>
