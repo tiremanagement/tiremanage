@@ -44,7 +44,7 @@
         }
         .admin-hero .nav-inner { display: flex; align-items: center; justify-content: flex-start; gap: 3rem; }
         .admin-hero .brand-block { display: flex; align-items: center; gap: .75rem; padding-left: 4.25rem; padding-right: 45rem; }
-        .admin-hero .brand-logo { height: 46px; width: auto; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,.28)); }
+    .admin-hero .brand-logo { height: 46px; width: auto; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,.28)); }
         .admin-hero .status-block {
             color: #ffffff;
             display: flex;
@@ -158,7 +158,27 @@
         <div class="container-fluid px-4">
             <div class="nav-inner">
                 <div class="brand-block">
-                    <img src="{{ asset('assets/images/logo2.png') }}" alt="SLT-MOBITEL" class="brand-logo">
+                    @php
+                        $homeUrl = route('login');
+                        if (Auth::check() && Auth::user()->role) {
+                            $roleName = strtolower(trim(Auth::user()->role->name));
+                            if (str_contains($roleName, 'admin')) {
+                                $homeUrl = route('admin.dashboard');
+                            } elseif (str_contains($roleName, 'driver')) {
+                                $homeUrl = route('driver.dashboard');
+                            } elseif (str_contains($roleName, 'section')) {
+                                $homeUrl = route('section_manager.dashboard');
+                            } elseif (str_contains($roleName, 'mechanic')) {
+                                // Mechanic officer doesn't have a 'dashboard' route; use pending list
+                                $homeUrl = route('mechanic_officer.pending');
+                            } elseif (str_contains($roleName, 'transport')) {
+                                $homeUrl = route('transport_officer.dashboard');
+                            }
+                        }
+                    @endphp
+                    <a href="{{ $homeUrl }}" aria-label="Home">
+                        <img src="{{ asset('assets/images/logo2.png') }}" alt="SLT-MOBITEL" class="brand-logo">
+                    </a>
                 </div>
                 <div class="status-block d-flex align-items-center gap-4 flex-wrap">
                     <div class="d-flex flex-column align-items-end text-end">
