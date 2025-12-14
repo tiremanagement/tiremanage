@@ -3,117 +3,328 @@
 @section('title', 'Search Results')
 
 @section('content')
-<div class="container mx-auto p-6">
-
-    {{-- ✅ Search Bar --}}
-    <div class="toolbar mb-6">
-        <form id="driver-search-form" action="{{ route('section_manager.requests.search') }}" method="GET" class="flex">
-            <input type="text" name="search" id="search-input" value="{{ old('search', $search ?? '') }}"
-                placeholder="Search by Driver Name..."
-                class="flex-1 border border-gray-300 rounded-l px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-            <button type="submit"
-                class="bg-yellow-500 text-white px-4 py-2 rounded-r hover:bg-yellow-600 transition">
-                🔍 Search
-            </button>
-        </form>
+<div class="container-fluid py-4">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="h3 fw-bold" style="color:#0b4fb4;">
+        <i class="bi bi-search me-2"></i>Search Results
+      </h1>
+      <p class="text-muted">Results for "<strong>{{ $search }}</strong>"</p>
     </div>
-
-    {{-- ✅ Results --}}
-    <h2 class="dashboard-title">🔍 Search Results for "{{ $search }}"</h2>
-
-    <ul class="requests-list">
+    <div class="col-md-4">
+      <form id="driver-search-form" action="{{ route('section_manager.requests.search') }}" method="GET" class="m-0">
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+          <input type="text" name="search" id="search-input" value="{{ $search }}" class="form-control" placeholder="Search by driver name">
+          <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Requests List -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+      <h5 class="mb-0 fw-bold">
+        <i class="bi bi-list-check me-2"></i>Pending Requests
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <ul class="requests-list list-unstyled mb-0">
         @forelse($pendingRequests as $req)
-            <li class="request-card" style="background-color:#e5db1b;">
-                <div class="request-content flex justify-between flex-wrap gap-4">
-
-                    {{-- Request Info --}}
-                    <div class="flex-1">
-                        <h4 class="request-header font-semibold text-lg mb-1">
-                            Request #{{ $req->id }} — {{ $req->user->name ?? 'Unknown User' }}
-                        </h4>
-                        <p><strong>Vehicle:</strong> {{ $req->vehicle->plate_no ?? 'N/A' }}</p>
-                        <p><strong>Branch:</strong> {{ $req->vehicle->branch ?? 'N/A' }}</p>
-                        <p><strong>Tyre:</strong> {{ $req->tire->size ?? 'N/A' }}</p>
-                        <p><strong>Damage Description:</strong> {{ $req->damage_description ?? 'No description' }}</p>
-
-                        {{-- Tire Images --}}
-                        @php
-                            $images = $req->tire_images ?? [];
-                            if(is_string($images)){
-                                $decoded = json_decode($images, true);
-                                $images = is_array($decoded) ? $decoded : explode(',', $images);
-                            }
-                        @endphp
-                        @if(count($images) > 0)
-                            <div class="request-images mt-3">
-                                <strong>Images:</strong>
-                                <div class="images-container flex flex-wrap gap-2 mt-2">
-                                    @foreach($images as $img)
-                                        <img src="{{ asset('storage/' . $img) }}"
-                                             class="request-img w-24 h-24 object-cover rounded shadow"
-                                             data-full="{{ asset('storage/' . $img) }}" />
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
+          <li class="request-card border-bottom">
+            <div class="request-content p-4">
+              <!-- Request Header -->
+              <div class="row align-items-start mb-3">
+                <div class="col-md-8">
+                  <div class="d-flex align-items-center gap-3">
+                    <div>
+                      <h6 class="fw-bold mb-1" style="color:#0b4fb4;">
+                        <i class="bi bi-person-circle me-2"></i>{{ $req->user->name ?? 'N/A' }}
+                      </h6>
+                      <small class="text-muted">
+                        <i class="bi bi-calendar3 me-1"></i>{{ optional($req->created_at)->format('M d, Y H:i') ?? '-' }}
+                      </small>
                     </div>
-
-                    {{-- Actions --}}
-                    <div class="flex flex-col gap-2 request-actions">
-                        <form action="{{ route('section_manager.requests.approve', $req->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-approve">✅ Approve</button>
-                        </form>
-                        <form action="{{ route('section_manager.requests.reject', $req->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-reject">❌ Reject</button>
-                        </form>
-                    </div>
+                  </div>
                 </div>
-            </li>
+                <div class="col-md-4 text-md-end">
+                  <span class="badge bg-warning text-dark">
+                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                  </span>
+                </div>
+              </div>
+
+              <!-- Vehicle & Tyre Info -->
+              <div class="row mb-3">
+                <div class="col-12">
+                  <div class="d-flex flex-wrap gap-2">
+                    <span class="badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;">
+                      <i class="bi bi-truck me-1"></i><strong>{{ $req->vehicle->plate_no ?? 'N/A' }}</strong>
+                    </span>
+                    <span class="badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">
+                      <i class="bi bi-geo-alt me-1"></i>{{ $req->vehicle->branch ?? 'N/A' }}
+                    </span>
+                    <span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;">
+                      <i class="bi bi-record2 me-1"></i>{{ $req->tire->brand ?? 'N/A' }}
+                    </span>
+                    <span class="badge" style="background:#f5f3ff; color:#7c3aed; border:1px solid #e9d5ff;">
+                      <i class="bi bi-aspect-ratio me-1"></i>{{ $req->tire->size ?? 'N/A' }}
+                    </span>
+                    <span class="badge" style="background:#fce7f3; color:#be185d; border:1px solid #fbcfe8;">
+                      <i class="bi bi-123 me-1"></i>{{ $req->tire_count ?? 'N/A' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Damage Description -->
+              <div class="mb-3">
+                <strong class="d-block mb-2">Damage Description:</strong>
+                <p class="text-muted" style="border-left:4px solid #0b4fb4; padding-left:12px; margin:0;">
+                  {{ $req->damage_description ?? 'No description provided' }}
+                </p>
+              </div>
+
+              <!-- Images -->
+              @php
+                $images = $req->tire_images ?? [];
+                if(is_string($images)){
+                  $decoded = json_decode($images, true);
+                  $images = is_array($decoded) ? $decoded : explode(',', $images);
+                }
+              @endphp
+
+              @if(count($images) > 0)
+                <div class="mb-3">
+                  <strong class="d-block mb-2">Tire Images:</strong>
+                  <div class="images-container">
+                    @foreach($images as $img)
+                      <img src="{{ asset('storage/' . ltrim(trim($img), '/')) }}" alt="tire-image" class="request-img" data-full="{{ asset('storage/' . ltrim(trim($img), '/')) }}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%2270%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2212%22 fill=%22%236b7280%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E'" />
+                    @endforeach
+                  </div>
+                </div>
+              @endif
+
+              <!-- Actions -->
+              <div class="request-actions pt-3 border-top">
+                <form action="{{ route('section_manager.requests.approve', $req->id) }}" method="POST" class="d-inline">
+                  @csrf
+                  <button type="submit" class="btn btn-success btn-sm">
+                    <i class="bi bi-check-circle me-1"></i> Approve
+                  </button>
+                </form>
+                <form action="{{ route('section_manager.requests.reject', $req->id) }}" method="POST" class="d-inline">
+                  @csrf
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="bi bi-x-circle me-1"></i> Reject
+                  </button>
+                </form>
+              </div>
+            </div>
+          </li>
         @empty
-            <li class="request-card empty-card">No pending requests found for "{{ $search }}"</li>
+          <li class="p-5">
+            <div class="text-center">
+              <i class="bi bi-inbox" style="font-size:3rem; color:#d1d5db; margin-bottom:1rem; display:block;"></i>
+              <p class="text-muted mb-0">No requests found for "{{ $search }}"</p>
+            </div>
+          </li>
         @endforelse
-    </ul>
+      </ul>
+    </div>
+  </div>
 </div>
 @endsection
 
 @push('styles')
 <style>
-/* Dashboard Title */
-.dashboard-title { font-size:2rem; font-weight:700; text-align:center; margin-bottom:1.5rem; color:#065f46; }
-/* Requests List */
-.requests-list { display:flex; flex-direction:column; gap:1.2rem; }
-/* Cards */
-.request-card { border-radius:1rem; padding:1.5rem; box-shadow:0 6px 14px rgba(0,0,0,0.06); transition: transform .3s, box-shadow .3s; }
-.request-card:hover { transform: translateY(-5px) scale(1.01); box-shadow:0 12px 24px rgba(0,0,0,0.12); }
-.empty-card { text-align:center; color:#6b7280; font-style:italic; }
-/* Info */
-.request-header { font-size:1.1rem; font-weight:600; color:#1f1f1f; margin-bottom:0.25rem; }
-.request-vehicle { color:#374151; margin-bottom:0.6rem; }
-.request-damage p { margin-top:0.3rem; color:#4b5563; }
-/* Images */
-.images-container { display:flex; flex-wrap:wrap; gap:0.6rem; margin-top:0.6rem; }
-.request-img { width:110px; height:80px; object-fit:cover; border-radius:0.5rem; border:1px solid #ddd; cursor:pointer; transition:transform .25s, box-shadow .25s; }
-.request-img:hover { transform:scale(1.05); box-shadow:0 10px 20px rgba(0,0,0,0.15); }
-/* Buttons */
-.btn { padding:0.5rem 1rem; border-radius:0.75rem; font-weight:600; color:white; font-size:0.95rem; cursor:pointer; border:none; transition:all .3s ease; }
-.btn-approve { background:#16a34a; }
-.btn-approve:hover { background:#15803d; transform:scale(1.05); }
-.btn-reject { background:#dc2626; }
-.btn-reject:hover { background:#b91c1c; transform:scale(1.05); }
+/* Request List Container */
+.requests-list { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0;
+}
+
+/* Individual Request Card */
+.request-card { 
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.request-card:last-child {
+  border-bottom: none;
+}
+
+.request-card:hover {
+  background-color: #f9fafb;
+}
+
+.request-content {
+  transition: all 0.2s;
+}
+
+/* Request Header Styling */
+.request-content h6 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Badges Custom Styling */
+.badge {
+  padding: 0.4rem 0.8rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+  border-radius: 0.35rem;
+}
+
+.badge i {
+  margin-right: 0.25rem;
+}
+
+/* Damage Description Box */
+.request-content p[style*="border-left"] {
+  background-color: #f0f9ff;
+  padding: 12px !important;
+  border-radius: 0.35rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Images Container */
+.images-container { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 0.75rem; 
+  margin-top: 0.5rem; 
+}
+
+.request-img { 
+  width: 120px; 
+  height: 85px; 
+  object-fit: cover; 
+  border-radius: 8px; 
+  border: 1px solid #d1d5db;
+  cursor: pointer; 
+  transition: transform 0.25s, box-shadow 0.25s, filter 0.25s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.request-img:hover { 
+  transform: scale(1.08); 
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  filter: brightness(1.05);
+}
+
+/* Request Actions */
+.request-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.request-actions .btn {
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 0.35rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s;
+}
+
+.request-actions .btn-success {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.request-actions .btn-success:hover {
+  background: #059669;
+  border-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.request-actions .btn-danger {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.request-actions .btn-danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.request-actions .btn i {
+  margin-right: 0.5rem;
+}
+
 /* Lightbox */
-.lightbox { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); z-index:10000; }
-.lightbox.active { display:flex; }
-.lightbox img { max-width:90%; max-height:85%; border-radius:.75rem; }
-.lightbox .close-btn { position:absolute; top:20px; right:30px; font-size:2rem; color:#fff; cursor:pointer; }
+.lightbox { 
+  position: fixed; 
+  inset: 0; 
+  display: none; 
+  align-items: center; 
+  justify-content: center; 
+  background: rgba(0,0,0,0.85); 
+  z-index: 10000; 
+  backdrop-filter: blur(4px);
+}
+
+.lightbox.active { 
+  display: flex; 
+}
+
+.lightbox img { 
+  max-width: 90%; 
+  max-height: 85%; 
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.lightbox .close-btn { 
+  position: absolute; 
+  top: 20px; 
+  right: 30px; 
+  font-size: 2.5rem; 
+  color: #fff; 
+  cursor: pointer;
+  transition: opacity 0.2s;
+  opacity: 0.8;
+}
+
+.lightbox .close-btn:hover {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .request-img {
+    width: 100px;
+    height: 70px;
+  }
+  
+  .request-actions {
+    gap: 0.5rem;
+  }
+  
+  .request-actions .btn {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
 </style>
 @endpush
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // Lightbox
+    // Lightbox for image preview
     const lightbox = document.createElement('div');
     lightbox.className = 'lightbox';
     lightbox.innerHTML = '<span class="close-btn">&times;</span><img src="" alt="preview"/>';
@@ -129,25 +340,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    closeBtn.addEventListener('click', () => {
+    const close = () => {
         lightbox.classList.remove('active');
         imgEl.src = '';
+    };
+
+    closeBtn.addEventListener('click', close);
+    lightbox.addEventListener('click', (e) => {
+        if(e.target === lightbox) close();
     });
 
-    lightbox.addEventListener('click', (e) => {
-        if(e.target === lightbox){
-            lightbox.classList.remove('active');
-            imgEl.src = '';
+    // Handle form submission with Escape key
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape' && lightbox.classList.contains('active')) {
+            close();
         }
     });
-
-    // Search: prevent empty submission
-    const searchForm = document.getElementById('driver-search-form');
-    const searchInput = document.getElementById('search-input');
-    searchForm.addEventListener('submit', function(e){
-        if(searchInput.value.trim() === ''){
-            e.preventDefault();
-            window.location.href = "{{ route('section_manager.dashboard') }}";
+});
+</script>
+@endpush
         }
     });
 });

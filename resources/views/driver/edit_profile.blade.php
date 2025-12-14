@@ -27,14 +27,14 @@
             <a class="nav-link" href="{{ route('driver.password.form') }}">Security</a>
           </nav>
           <div class="mt-3 d-flex gap-2">
-            <label for="profilePhotoInput" class="btn btn-light border btn-icon" title="Upload" aria-label="Upload">
+            <label for="profilePhotoInputSidebar" class="btn btn-light border btn-icon" title="Upload" aria-label="Upload">
               <i class="bi bi-upload"></i>
             </label>
             <button type="button" class="btn btn-outline-danger btn-icon" title="Remove" aria-label="Remove" onclick="removePhoto()">
               <i class="bi bi-trash"></i>
             </button>
           </div>
-          <input type="file" id="profilePhotoInput" name="profile_photo" accept="image/*" onchange="previewPhoto(event)" class="d-none">
+          <input type="file" id="profilePhotoInputSidebar" name="profile_photo_sidebar" accept="image/*" onchange="previewPhoto(event)" class="d-none">
           <input type="hidden" id="removePhotoFlag" name="remove_photo" value="0">
         </div>
       </div>
@@ -47,8 +47,10 @@
           <div class="small text-muted">Keep your details up to date.</div>
         </div>
         <div class="card-body">
-          <form action="{{ route('driver.profile.update') }}" method="POST" enctype="multipart/form-data" class="row g-3">
+          <form action="{{ route('driver.profile.update') }}" method="POST" enctype="multipart/form-data" class="row g-3" id="profileForm">
             @csrf
+            <input type="file" id="profilePhotoInput" name="profile_photo" accept="image/*" onchange="previewPhoto(event)" class="d-none">
+            <input type="hidden" id="removePhotoFlag" name="remove_photo" value="0">
             <div class="col-12">
               <label class="form-label">Username</label>
               <input type="text" name="name" class="form-control form-control-modern" value="{{ $driver->user->name }}" required>
@@ -86,9 +88,19 @@
 <script>
 function previewPhoto(event) {
   const output = document.getElementById('photoPreview');
+  const sidebarInput = document.getElementById('profilePhotoInputSidebar');
+  const formInput = document.getElementById('profilePhotoInput');
+  
   if (event.target.files && event.target.files[0]) {
     output.src = URL.createObjectURL(event.target.files[0]);
     document.getElementById('removePhotoFlag').value = 0;
+    
+    // Copy the file from sidebar input to form input using DataTransfer
+    if (event.target.id === 'profilePhotoInputSidebar' && formInput) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(event.target.files[0]);
+      formInput.files = dataTransfer.files;
+    }
   }
 }
 
@@ -96,8 +108,10 @@ function removePhoto() {
   const output = document.getElementById('photoPreview');
   output.src = "{{ asset('assets/images/default-profile.jpg') }}";
   document.getElementById('removePhotoFlag').value = 1;
-  const input = document.getElementById('profilePhotoInput');
-  if (input) input.value = "";
+  const sidebarInput = document.getElementById('profilePhotoInputSidebar');
+  const formInput = document.getElementById('profilePhotoInput');
+  if (sidebarInput) sidebarInput.value = "";
+  if (formInput) formInput.value = "";
 }
 </script>
 

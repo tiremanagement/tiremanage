@@ -114,6 +114,16 @@ public function rejected()
     public function reject($id)
     {
         $requestItem = TireRequest::findOrFail($id);
+        
+        // Get the rejection reason from the request
+        $reason = request('reason', 'Request rejected by Section Manager');
+        $customReason = request('custom_reason');
+        
+        // Combine reason and custom description if provided
+        $remarks = $reason;
+        if ($customReason) {
+            $remarks = $reason . "\n\nAdditional Details: " . $customReason;
+        }
 
         // Step 1: Update request
         $requestItem->update([
@@ -121,18 +131,19 @@ public function rejected()
             'current_level' => Approval::LEVEL_SECTION_MANAGER,
         ]);
 
-        // Step 2: Log in Approval table
+        // Step 2: Log in Approval table with remarks
         Approval::updateOrCreate(
             ['request_id' => $requestItem->id, 'level' => Approval::LEVEL_SECTION_MANAGER],
             [
                 'approved_by' => auth()->id(),
                 'status' => Approval::STATUS_REJECTED,
+                'remarks' => $remarks,
             ]
         );
 
         // Step 3: Redirect → rejected list
         return redirect()->route('section_manager.requests.rejected_list')
-            ->with('error', '❌ Request rejected successfully.');
+            ->with('success', '❌ Request rejected successfully with reason provided.');
     }
 
     /** ---------------- EDIT REQUEST ---------------- */
