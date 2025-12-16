@@ -3,101 +3,261 @@
 @section('title', 'Approved Requests')
 
 @section('content')
-<div class="container mx-auto p-6">
-    <h2 class="dashboard-title">✅ Approved Requests</h2>
+<div class="container-fluid py-4">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="h3 fw-bold" style="color:#10b981;">
+        <i class="bi bi-check2-circle me-2"></i>Approved Requests
+      </h1>
+      <p class="text-muted">Review all approved tire requests</p>
+    </div>
+    <div class="col-md-4">
+      <form id="approved-search-form" class="m-0">
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+          <input type="text" id="approvedSearch" class="form-control" placeholder="Search by driver name">
+        </div>
+      </form>
+    </div>
+  </div>
 
-    <ul class="requests-list">
+  <!-- Requests List -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+      <h5 class="mb-0 fw-bold">Request List</h5>
+    </div>
+    <div class="card-body p-0">
+      <ul class="requests-list list-unstyled mb-0" id="approvedList">
         @forelse($approvedRequests as $req)
-            @if($req)
-            <li class="request-card">
-                <div class="request-content">
-                    <div class="request-info">
-                        <div class="request-header">
-                            <strong>Request:</strong> User: {{ $req->user->name ?? 'N/A' }}
-                        </div>
-                        <div class="request-vehicle">
-                            Vehicle: {{ $req->vehicle->plate_no ?? 'N/A' }}<br>
-                            Branch: {{ $req->vehicle->branch ?? 'N/A' }}<br>
-                            Tyre Brand: {{ $req->tire->brand ?? 'N/A' }}<br>
-                            Tyre Size: {{ $req->tire->size ?? 'N/A' }}<br>
-                            Tyre Count: {{ $req->tire_count ?? 'N/A' }}
-                        </div>
-                        <div class="request-damage">
-                            <strong>Damage Description:</strong>
-                            <p>{{ $req->damage_description ?? 'No description provided' }}</p>
-                        </div>
-
-                        @php
-                            $images = [];
-                            if(!empty($req->tire_images)) {
-                                $images = is_array($req->tire_images) ? $req->tire_images : json_decode($req->tire_images, true) ?? [];
-                            }
-                            if(empty($images) && !empty($req->images)) {
-                                $images = is_array($req->images) ? $req->images : array_map('trim', explode(',', $req->images));
-                            }
-                        @endphp
-
-                        @if(count($images) > 0)
-                        <div class="request-images">
-                            <strong>Images:</strong>
-                            <div class="images-container">
-                                @foreach($images as $img)
-                                    @php $imgPath = str_replace('\\/', '/', trim($img)); @endphp
-                                    <img src="{{ asset('storage/' . $imgPath) }}"
-                                         alt="image-{{ $req->id }}"
-                                         class="request-img"
-                                         data-full="{{ asset('storage/' . $imgPath) }}"/>
-                                @endforeach
-                            </div>
-                        </div>
-                        @else
-                            <div class="no-images"><em>No images provided</em></div>
-                        @endif
+          @php 
+            $approval = $req->approvals()
+              ->where('level', 2)
+              ->where('status', 'approved_by_mechanic')
+              ->first(); 
+          @endphp
+          @if($req)
+          <li class="request-card border-bottom">
+            <div class="request-content p-4">
+              <!-- Request Header -->
+              <div class="row align-items-start mb-3">
+                <div class="col-md-8">
+                  <div class="d-flex align-items-center gap-3">
+                    <div>
+                      <h6 class="fw-bold mb-1" style="color:#10b981;">
+                        <i class="bi bi-person-circle me-2"></i><span class="driver-name">{{ $req->user->name ?? 'N/A' }}</span>
+                      </h6>
+                      <small class="text-muted">
+                        <i class="bi bi-calendar3 me-1"></i>{{ optional($approval->updated_at ?? $req->updated_at)->format('M d, Y H:i') ?? '-' }}
+                      </small>
                     </div>
-
-                    <div class="request-actions">
-                        <a href="{{ route('mechanic_officer.edit_request', $req->id) }}" class="edit-btn">✏️ Edit</a>
-                    </div>
+                  </div>
                 </div>
-            </li>
-            @endif
+                <div class="col-md-4 text-md-end">
+                  <span class="badge" style="background:#d1fae5; color:#065f46;">
+                    <i class="bi bi-check2-circle me-1"></i>Approved
+                  </span>
+                </div>
+              </div>
+
+              <!-- Vehicle & Tyre Info -->
+              <div class="row mb-3">
+                <div class="col-12">
+                  <div class="d-flex flex-wrap gap-2">
+                    <span class="badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;">
+                      <i class="bi bi-truck me-1"></i><strong>{{ $req->vehicle->plate_no ?? 'N/A' }}</strong>
+                    </span>
+                    <span class="badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">
+                      <i class="bi bi-geo-alt me-1"></i>{{ $req->vehicle->branch ?? 'N/A' }}
+                    </span>
+                    <span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;">
+                      <i class="bi bi-record2 me-1"></i>{{ $req->tire->brand ?? 'N/A' }}
+                    </span>
+                    <span class="badge" style="background:#f5f3ff; color:#7c3aed; border:1px solid #e9d5ff;">
+                      <i class="bi bi-aspect-ratio me-1"></i>{{ $req->tire->size ?? 'N/A' }}
+                    </span>
+                    <span class="badge" style="background:#fce7f3; color:#be185d; border:1px solid #fbcfe8;">
+                      <i class="bi bi-123 me-1"></i>{{ $req->tire_count ?? 'N/A' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Damage Description -->
+              <div class="mb-3">
+                <strong class="d-block mb-2">Damage Description:</strong>
+                <p class="text-muted" style="border-left:4px solid #10b981; padding-left:12px; margin:0;">
+                  {{ $req->damage_description ?? 'No description provided' }}
+                </p>
+              </div>
+
+              <!-- Images -->
+              @php
+                $images = [];
+                if(!empty($req->tire_images)) {
+                  if(is_array($req->tire_images)) {
+                    $images = $req->tire_images;
+                  } elseif(is_string($req->tire_images)) {
+                    $decoded = json_decode($req->tire_images, true);
+                    if(is_array($decoded)) $images = $decoded;
+                  }
+                }
+                if(empty($images) && !empty($req->images)) {
+                  $images = is_array($req->images) ? $req->images : array_map('trim', explode(',', $req->images));
+                }
+              @endphp
+
+              @if(count($images) > 0)
+                <div class="mb-3">
+                  <strong class="d-block mb-2">Tire Images:</strong>
+                  <div class="images-container">
+                    @foreach($images as $img)
+                      @php $imgPath = str_replace('\\/', '/', trim($img)); @endphp
+                      <img src="{{ asset('storage/' . ltrim($imgPath, '/')) }}" alt="tire-image" class="request-img" data-full="{{ asset('storage/' . ltrim($imgPath, '/')) }}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%2270%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2212%22 fill=%22%236b7280%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E'" />
+                    @endforeach
+                  </div>
+                </div>
+              @endif
+
+              <!-- Actions -->
+              <div class="request-actions pt-3 border-top">
+                <a href="{{ route('mechanic_officer.edit_request', $req->id) }}" class="btn btn-primary btn-sm">
+                  <i class="bi bi-pencil me-1"></i> Edit
+                </a>
+              </div>
+            </div>
+          </li>
+          @endif
         @empty
-            <li class="request-card empty-card">No approved requests found.</li>
+          <li class="p-5">
+            <div class="text-center">
+              <i class="bi bi-inbox" style="font-size:3rem; color:#d1d5db; margin-bottom:1rem; display:block;"></i>
+              <p class="text-muted mb-0">No approved requests found</p>
+            </div>
+          </li>
         @endforelse
-    </ul>
+      </ul>
+    </div>
+  </div>
 </div>
 @endsection
 
 @push('styles')
 <style>
-.dashboard-title { font-size:2rem; font-weight:700; text-align:center; margin-bottom:1.5rem; color:#065f46; }
-.requests-list { display:flex; flex-direction:column; gap:1.2rem; }
-.request-card { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border:1px solid rgba(6,95,70,0.2); border-radius:1rem; padding:1.5rem; box-shadow:0 6px 14px rgba(0,0,0,0.06); transition:transform .3s, box-shadow .3s; }
-.request-card:hover { transform: translateY(-5px) scale(1.01); box-shadow:0 12px 24px rgba(0,0,0,0.12); }
-.empty-card { text-align:center; color:#6b7280; font-style:italic; }
-.request-header { font-size:1.1rem; font-weight:600; color:#065f46; margin-bottom:0.25rem; }
-.request-vehicle { color:#374151; margin-bottom:0.6rem; }
-.request-damage p { margin-top:0.3rem; color:#4b5563; }
-.images-container { display:flex; flex-wrap:wrap; gap:0.6rem; margin-top:0.6rem; }
-.request-img { width:110px; height:80px; object-fit:cover; border-radius:0.5rem; border:1px solid #ddd; cursor:pointer; transition:transform .25s, box-shadow .25s; }
-.request-img:hover { transform:scale(1.05); box-shadow:0 10px 20px rgba(0,0,0,0.15); }
-.no-images { margin-top:0.5rem; font-style:italic; color:#6b7280; }
-.request-actions { margin-top:1rem; display:flex; justify-content:flex-end; }
-.edit-btn { display:inline-block; background:#16a34a; color:#fff; font-size:0.9rem; font-weight:600; padding:0.5rem 1rem; border-radius:0.5rem; text-decoration:none; transition:background 0.25s, transform 0.25s; box-shadow:0 4px 10px rgba(22,163,74,0.3); }
-.edit-btn:hover { background:#15803d; transform:translateY(-2px); box-shadow:0 6px 14px rgba(21,128,61,0.35); }
+/* Request List Container */
+.requests-list { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0;
+}
+
+/* Individual Request Card */
+.request-card { 
+  background: white; 
+  transition: all 0.3s ease;
+}
+
+.request-card:hover { 
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Request Content */
+.request-content { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-start;
+}
+
+.request-info { 
+  flex: 1;
+}
+
+.request-actions { 
+  display: flex; 
+  gap: 0.5rem; 
+  justify-content: flex-end;
+}
+
+/* Images Container */
+.images-container { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 0.75rem; 
+  margin-top: 0.75rem;
+}
+
+.request-img { 
+  width: 100px; 
+  height: 70px; 
+  object-fit: cover; 
+  border-radius: 6px; 
+  border: 1px solid #e5e7eb; 
+  cursor: pointer; 
+  transition: all 0.25s ease;
+}
+
+.request-img:hover { 
+  transform: scale(1.08); 
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
 /* Lightbox Styles */
-.lightbox { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); z-index:10000; animation:fadeIn .3s ease; }
-.lightbox.active { display:flex; }
-.lightbox img { max-width:90%; max-height:85%; border-radius:.75rem; box-shadow:0 20px 40px rgba(0,0,0,.5); animation:zoomIn .3s ease; }
-.lightbox .close-btn { position:absolute; top:20px; right:30px; font-size:2rem; color:#fff; cursor:pointer; }
-@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-@keyframes zoomIn { from {transform:scale(.85);} to {transform:scale(1);} }
+.lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+.lightbox.active {
+  display: flex;
+}
+
+.lightbox img {
+  max-width: 90%;
+  max-height: 85%;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: zoomIn 0.3s ease;
+}
+
+.lightbox .close-btn {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 2.5rem;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.lightbox .close-btn:hover {
+  transform: scale(1.2);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.85); }
+  to { transform: scale(1); }
+}
 </style>
 @endpush
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Lightbox for images
     const lightbox = document.createElement('div');
     lightbox.className = 'lightbox';
     lightbox.innerHTML = '<span class="close-btn">&times;</span><img src="" alt="preview"/>';
@@ -124,6 +284,18 @@ document.addEventListener('DOMContentLoaded', () => {
             imgEl.src = '';
         }
     });
+
+    // Live search filter
+    const searchInput = document.getElementById('approvedSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const term = searchInput.value.toLowerCase();
+            document.querySelectorAll('.request-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+    }
 });
 </script>
 @endpush

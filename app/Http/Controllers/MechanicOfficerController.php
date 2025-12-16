@@ -148,9 +148,17 @@ public function update(Request $request, $id)
     }
 
     /** ---------------- REJECT QUICK ACTION ---------------- */
-    public function reject($id)
+    public function reject(Request $request, $id)
     {
         $req = TireRequest::findOrFail($id);
+
+        // Build remarks from selected reason + custom text
+        $reason = $request->input('reason');
+        $custom = $request->input('custom_reason');
+        $remarksParts = [];
+        if (!empty($reason)) $remarksParts[] = $reason;
+        if (!empty($custom)) $remarksParts[] = $custom;
+        $remarks = count($remarksParts) ? implode(': ', $remarksParts) : null;
 
         $req->update([
             'status' => Approval::STATUS_REJECTED_BY_MECHANIC,
@@ -162,10 +170,11 @@ public function update(Request $request, $id)
             [
                 'approved_by' => Auth::id(),
                 'status' => Approval::STATUS_REJECTED_BY_MECHANIC,
+                'remarks' => $remarks,
             ]
         );
 
         return redirect()->route('mechanic_officer.rejected')
-            ->with('error', '❌ Request rejected.');
+            ->with('error', '❌ Request rejected.' . ($remarks ? ' Reason: ' . $remarks : ''));
     }
 }
