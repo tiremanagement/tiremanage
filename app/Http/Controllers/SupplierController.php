@@ -32,11 +32,13 @@ class SupplierController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'contact' => ['required', 'string', 'max:255', 'regex:/^(0\d{9}|\+?94\d{9})$/', 'unique:suppliers,contact'],
+            'email' => 'nullable|email|unique:suppliers,email',
             'address' => 'nullable|string|max:500',
             'town' => 'nullable|string|max:100',
         ], [
             'contact.regex' => 'Contact must be 10 digits starting with 0 (e.g. 0711234567) or include country code 94 with 9 subscriber digits (e.g. +94711234567).',
             'contact.unique' => 'A supplier with this contact already exists.',
+            'email.unique' => 'A supplier with this email already exists.',
         ]);
 
         Supplier::create($request->all());
@@ -65,11 +67,17 @@ class SupplierController extends Controller
                 'regex:/^(0\d{9}|\+?94\d{9})$/',
                 Rule::unique('suppliers', 'contact')->ignore($supplier->id),
             ],
+            'email' => [
+                'nullable',
+                'email',
+                Rule::unique('suppliers', 'email')->ignore($supplier->id),
+            ],
             'address' => 'nullable|string|max:500',
             'town' => 'nullable|string|max:100',
         ], [
             'contact.regex' => 'Contact must be 10 digits starting with 0 (e.g. 0711234567) or include country code 94 with 9 subscriber digits (e.g. +94711234567).',
             'contact.unique' => 'A supplier with this contact already exists.',
+            'email.unique' => 'A supplier with this email already exists.',
         ]);
 
         $supplier->update($request->all());

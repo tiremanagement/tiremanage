@@ -151,9 +151,19 @@ public function approved()
     }
 
     /** ---------------- REJECT QUICK ACTION ---------------- */
-    public function reject($id)
+    public function reject(Request $request, $id)
     {
         $req = TireRequest::findOrFail($id);
+
+        // Build rejection remarks from reason and custom_reason
+        $remarksParts = [];
+        if ($request->input('reason')) {
+            $remarksParts[] = $request->input('reason');
+        }
+        if ($request->input('custom_reason')) {
+            $remarksParts[] = $request->input('custom_reason');
+        }
+        $remarks = implode(': ', $remarksParts);
 
         $req->update([
             'status' => Approval::STATUS_REJECTED_BY_TRANSPORT,
@@ -165,11 +175,12 @@ public function approved()
             [
                 'approved_by' => Auth::id(),
                 'status' => Approval::STATUS_REJECTED_BY_TRANSPORT,
+                'remarks' => $remarks,
             ]
         );
 
         return redirect()->route('transport_officer.rejected')
-            ->with('error', 'Supplier contact number not found. WhatsApp message not sent.');
+            ->with('success', '✅ Request rejected successfully.');
     }
 
 

@@ -152,6 +152,13 @@
                     @enderror
                 </div>
                 <div class="col-12 supplier-field">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="e.g. supplier@example.com">
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-12 supplier-field">
                     <label for="address" class="form-label">Address</label>
                     <textarea id="address" name="address" class="form-control" placeholder="Enter address">{{ old('address') }}</textarea>
                 </div>
