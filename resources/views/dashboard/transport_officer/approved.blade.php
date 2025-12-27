@@ -136,20 +136,28 @@
                             <div class="row g-3 align-items-end">
                                 <div class="col-md-4">
                                     <label for="supplier_id-{{ $req->id }}" class="form-label fw-semibold">Supplier:</label>
-                                    <select name="supplier_id" id="supplier_id-{{ $req->id }}" class="form-select" required>
+                                    <select name="supplier_id" id="supplier_id-{{ $req->id }}" class="form-select supplier-select" required>
                                         <option value="">-- Select Supplier --</option>
                                         @foreach($suppliers as $supplier)
-                                            <option value="{{ $supplier->id }}">{{ $supplier->name }} - {{ $supplier->contact }}</option>
+                                            <option value="{{ $supplier->id }}" data-contact="{{ $supplier->contact }}" data-email="{{ $supplier->email }}" data-town="{{ $supplier->town }}">{{ $supplier->name }} @if($supplier->town) - {{ $supplier->town }} @endif</option>
                                         @endforeach
                                     </select>
+                                    <div class="mt-2 small text-muted">
+                                        <span id="supplier-contact-{{ $req->id }}">Contact: —</span>
+                                        <span class="mx-2">|</span>
+                                        <span id="supplier-email-{{ $req->id }}">Email: —</span>
+                                    </div>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="description-{{ $req->id }}" class="form-label fw-semibold">Description:</label>
                                     <input type="text" name="description" id="description-{{ $req->id }}" class="form-control" placeholder="Optional">
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="amount-{{ $req->id }}" class="form-label fw-semibold">Amount:</label>
-                                    <input type="number" step="0.01" name="amount" id="amount-{{ $req->id }}" class="form-control" placeholder="0.00" required>
+                                    <label for="amount-{{ $req->id }}" class="form-label fw-semibold">Amount (₹):</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="number" step="0.01" name="amount" id="amount-{{ $req->id }}" class="form-control" placeholder="0.00" required>
+                                    </div>
                                 </div>
                             </div>
                             <div class="mt-3">
@@ -232,21 +240,91 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // WhatsApp Link Handler
-    @if(session('wa_link'))
-    (function() {
-        const wa = @json(session('wa_link'));
-        const opened = window.open(wa, '_blank');
-        if (!opened) {
-            const wrap = document.createElement('div');
-            wrap.style = 'position:fixed;right:18px;bottom:18px;background:#fff;padding:12px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.12);z-index:9999;';
-            wrap.innerHTML = '<div style="font-weight:700;color:#065f46;margin-bottom:6px;">Open WhatsApp</div>' +
-                             '<a href="'+wa+'" target="_blank" style="color:#065f46;text-decoration:none;font-weight:600;">Open WhatsApp Chat</a>';
-            document.body.appendChild(wrap);
-            setTimeout(() => { wrap.remove(); }, 15000);
-        }
-    })();
-    @endif
+    // Supplier select preview (contact / email)
+    document.querySelectorAll('.supplier-select').forEach(select => {
+        const updateInfo = () => {
+            const opt = select.selectedOptions[0];
+            const contact = (opt && opt.dataset && opt.dataset.contact) ? opt.dataset.contact : '—';
+            const email = (opt && opt.dataset && opt.dataset.email) ? opt.dataset.email : '—';
+            const id = select.id.split('-').pop();
+            const contactEl = document.getElementById('supplier-contact-' + id);
+            const emailEl = document.getElementById('supplier-email-' + id);
+            if (contactEl) contactEl.textContent = 'Contact: ' + contact;
+            if (emailEl) emailEl.textContent = 'Email: ' + email;
+        };
+        select.addEventListener('change', updateInfo);
+        // initialize
+        updateInfo();
+    });
+
+        // Email Preview Modal Handler
+        @if(session('email_preview'))
+        (function() {
+                const preview = @json(session('email_preview'));
+
+                const modalHtml = `
+                <div class="modal fade" id="emailPreviewModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Email Preview: ${preview.subject}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div style="border-bottom:1px solid #ddd;padding-bottom:12px;margin-bottom:12px;">
+                                  <div class="mb-2">
+                                    <label class="form-label fw-semibold">To:</label>
+                                    <input type="email" id="email-to" class="form-control" value="${preview.to}" required>
+                                  </div>
+                                  <div class="mb-2">
+                                    <label class="form-label fw-semibold">CC:</label>
+                                    <input type="email" id="email-cc" class="form-control" value="${preview.cc}" placeholder="Optional">
+                                  </div>
+                                  <div class="mb-2">
+                                    <label class="form-label fw-semibold">BCC:</label>
+                                    <input type="email" id="email-bcc" class="form-control" value="${preview.bcc}" placeholder="Optional">
+                                  </div>
+                                </div>
+                                <div id="email-body-preview">${preview.html}</div>
+                            </div>
+                            <div class="modal-footer">
+                                <form method="POST" action="{{ route('transport_officer.receipt.send') }}" id="sendEmailForm">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="receipt_id" value="${preview.receipt_id}">
+                                    <input type="hidden" id="hidden-to" name="to" value="">
+                                    <input type="hidden" id="hidden-cc" name="cc" value="">
+                                    <input type="hidden" id="hidden-bcc" name="bcc" value="">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-success" onclick="submitForm()">Send Email</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+                window.submitForm = function() {
+                    const to = document.getElementById('email-to').value;
+                    const cc = document.getElementById('email-cc').value;
+                    const bcc = document.getElementById('email-bcc').value;
+                    
+                    if (!to) {
+                        alert('To field is required');
+                        return;
+                    }
+                    
+                    document.getElementById('hidden-to').value = to;
+                    document.getElementById('hidden-cc').value = cc;
+                    document.getElementById('hidden-bcc').value = bcc;
+                    document.getElementById('sendEmailForm').submit();
+                };
+                
+                var modalEl = document.getElementById('emailPreviewModal');
+                var bsModal = new bootstrap.Modal(modalEl);
+                bsModal.show();
+        })();
+        @endif
 });
 </script>
 @endpush

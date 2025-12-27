@@ -10,6 +10,8 @@ use App\Models\Receipt;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReceiptMail;
 
 class TransportOfficerController extends Controller
 {
@@ -115,7 +117,7 @@ public function approved()
                 'current_level' => Approval::LEVEL_TRANSPORT_OFFICER,
             ]);
             return redirect()->route('transport_officer.rejected')
-                ->with('error', 'Supplier contact number not found. WhatsApp message not sent.');
+                ->with('error', 'Supplier contact or email not found. Message not sent.');
         }
 
         // Pending
@@ -244,42 +246,64 @@ public function storeReceipt(Request $request)
         ]
     );
 
-    // Prepare WhatsApp message (supplier only)
-    if (empty($supplier->contact)) {
-        return redirect()->route('transport_officer.approved')
-            ->with('error', 'Supplier contact number not found. WhatsApp message not sent.');
-    }
+    // Prepare email preview (do NOT auto-send) — user clicks Send button in modal
+    $driverEmail   = $tireRequest->user->email ?? null;
+    $supplierEmail = $supplier->email ?? null;
 
-    $driverName   = $tireRequest->user->name ?? 'N/A';
-    $vehiclePlate = $tireRequest->vehicle->plate_no ?? 'N/A';
+    // Render email HTML preview
+    $previewHtml = view('emails.receipt', compact('receipt'))->render();
 
-    $messageLines = [
-        "Tire Request Receipt",
-        "------------------------------",
-        "Request ID: {$tireRequest->id}",
-        "Driver: {$driverName}",
-        "Vehicle: {$vehiclePlate}",
-        "Amount: {$receipt->amount}",
-        "Tire: {$tireRequest->tire->name} ({$tireRequest->tire->size})",
-
-        "Tire Count: {$tireRequest->tire_count}",
+    // Store preview info in session for modal with CC/BCC fields
+    $preview = [
+        'subject' => 'Tire Receipt #' . $receipt->id,
+        'html' => $previewHtml,
+        'to' => $supplierEmail ?? '',
+        'cc' => $driverEmail ?? '',
+        'bcc' => '',
+        'receipt_id' => $receipt->id,
     ];
 
-    if (!empty($receipt->description)) {
-        $messageLines[] = "Description: {$receipt->description}";
+    return redirect()->route('transport_officer.approved')
+        ->with('success', 'Receipt generated. Preview ready.')
+        ->with('email_preview', $preview);
+}
+
+/**
+ * Send the receipt email with user-specified recipients (TO, CC, BCC).
+ */
+public function sendReceiptEmail(Request $request)
+{
+    $data = $request->validate([
+        'receipt_id' => ['required', 'exists:receipts,id'],
+        'to' => 'required|email',
+        'cc' => 'nullable|email',
+        'bcc' => 'nullable|email',
+    ]);
+
+    $receipt = Receipt::with(['supplier', 'tireRequest.user', 'tireRequest.vehicle', 'tireRequest.tire'])->findOrFail($data['receipt_id']);
+
+    try {
+        $mail = Mail::to($data['to']);
+        
+        if (!empty($data['cc'])) {
+            $mail->cc($data['cc']);
+        }
+        if (!empty($data['bcc'])) {
+            $mail->bcc($data['bcc']);
+        }
+        
+        $mail->send(new ReceiptMail($receipt));
+    } catch (\Throwable $e) {
+        return redirect()->route('transport_officer.approved')
+            ->with('error', 'Failed to send email: ' . $e->getMessage());
     }
 
-    $messageLines[] = "Issued on: " . now()->toDateString();
-    $message = implode("\n", $messageLines);
+    // mark receipt status
+    $receipt->status = 'emailed';
+    $receipt->save();
 
-    // Normalize contact and open WhatsApp
-    $phoneDigits = $this->normalizePhoneForWhatsApp($supplier->contact);
-    $waLink = "https://wa.me/{$phoneDigits}?text=" . urlencode($message);
-
-    // Redirect back to app and open WhatsApp in a new tab via session
     return redirect()->route('transport_officer.approved')
-        ->with('success', 'Receipt generated. Opening WhatsApp…')
-        ->with('wa_link', $waLink);
+        ->with('success', 'Receipt email sent successfully.');
 }
 
 
