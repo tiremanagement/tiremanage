@@ -3,7 +3,24 @@
 @section('title', 'Driver Dashboard')
 
 @section('content')
-<div class="dashboard-container">
+@php
+    $driver = \App\Models\Driver::with('user')->where('user_id', auth()->id())->first();
+    $user = auth()->user();
+    $name = $driver->full_name ?? $user?->name ?? 'Driver';
+    $email = $driver->user->email ?? $user?->email ?? 'N/A';
+    $mobile = $driver->mobile ?? 'N/A';
+    $idNumber = $driver->id_number ?? 'N/A';
+    $profilePhoto = $driver && $driver->profile_photo
+        ? asset('storage/' . $driver->profile_photo)
+        : asset('assets/images/default-profile.jpg');
+    $now = now();
+
+    $unreadReceipts = \App\Models\Receipt::whereHas('tireRequest', function ($query) {
+        $query->where('user_id', auth()->id());
+    })->where('is_read', false)->count();
+@endphp
+
+<div class="driver-dashboard">
 
     {{-- Flash messages --}}
     @if(session('success'))
@@ -13,34 +30,28 @@
         <div class="flash-msg flash-error">{{ session('error') }}</div>
     @endif
 
-    @php
-        $driver = \App\Models\Driver::with('user')->where('user_id', auth()->id())->first();
-        $profilePhoto = $driver && $driver->profile_photo
-            ? asset('storage/' . $driver->profile_photo)
-            : asset('assets/images/default-profile.jpg');
-    @endphp
-
     {{-- Welcome --}}
-    <div class="welcome-section">
-        <img src="{{ $profilePhoto }}" alt="Profile Photo" class="avatar-large">
-        <h1 class="welcome-text">
-            Welcome, {{ $driver->full_name ?? 'Driver' }}!
-        </h1>
+    <div class="welcome-strip">
+        <div class="avatar-wrap">
+            <img src="{{ $profilePhoto }}" alt="Profile Photo" class="avatar-large">
+        </div>
+        <div>
+            <p class="hello">Welcome, {{ $name }}!</p>
+            <p class="hello-sub">{{ $email }}</p>
+        </div>
     </div>
 
     {{-- Driver info card --}}
-    @if($driver)
     <div class="driver-info-card fade-in">
         <div class="card-overlay"></div>
         <h2 class="info-title">Driver Information</h2>
-        <div class="info-grid">
-            <div><strong>Full Name:</strong> {{ $driver->full_name ?? 'N/A' }}</div>
-            <div><strong>Email:</strong> {{ $driver->user->email ?? 'N/A' }}</div>
-            <div><strong>Mobile:</strong> {{ $driver->mobile ?? 'N/A' }}</div>
-            <div><strong>ID Number:</strong> {{ $driver->id_number ?? 'N/A' }}</div>
+        <div class="info-row">
+            <div><strong>Full Name:</strong> {{ $name }}</div>
+            <div><strong>Email:</strong> {{ $email }}</div>
+            <div><strong>Mobile:</strong> {{ $mobile }}</div>
+            <div><strong>ID Number:</strong> {{ $idNumber }}</div>
         </div>
     </div>
-    @endif
 
     {{-- Two Column Layout --}}
     <div class="dashboard-two-col">
@@ -48,58 +59,48 @@
         {{-- LEFT COLUMN - Cards --}}
         <div class="left-col">
             <div class="cards-stack">
-
-                <div class="card clickable" data-href="{{ route('driver.requests.create') }}">
-                    <div class="card-row">
-                        <div class="card-icon"><i class="bi bi-plus-circle"></i></div>
-                        <div>
-                            <h2 class="card-title">Request Tyre</h2>
-                            <p class="card-text">Submit a new tyre request quickly and easily.</p>
-                        </div>
+                <div class="action-card accent-blue clickable" data-href="{{ route('driver.requests.create') }}">
+                    <div class="icon-wrap">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Request Tyre</h3>
+                        <p class="card-text">Submit a new tyre request quickly and easily.</p>
                     </div>
                 </div>
 
-                <div class="card clickable" data-href="{{ route('driver.requests.index') }}">
-                    <div class="card-row">
-                        <div class="card-icon"><i class="bi bi-clipboard-check"></i></div>
-                        <div>
-                            <h2 class="card-title">View Your Requests</h2>
-                            <p class="card-text">Track the status of your tyre requests.</p>
-                        </div>
+                <div class="action-card accent-green clickable" data-href="{{ route('driver.requests.index') }}">
+                    <div class="icon-wrap">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">View Your Requests</h3>
+                        <p class="card-text">Track the status of your tyre requests.</p>
                     </div>
                 </div>
 
-                @php
-                    $unreadReceipts = \App\Models\Receipt::whereHas('tireRequest', function ($query) {
-                        $query->where('user_id', auth()->id());
-                    })->where('is_read', false)->count();
-                @endphp
-
-                <div class="card clickable" data-href="{{ route('driver.receipts') }}" style="position: relative;">
-                    {{-- Notification badge --}}
+                <div class="action-card accent-purple clickable" data-href="{{ route('driver.receipts') }}">
                     @if($unreadReceipts > 0)
-                        <div class="notif-badge">{{ $unreadReceipts }}</div>
+                        <span class="notif-badge">{{ $unreadReceipts }}</span>
                     @endif
-
-                    <div class="card-row">
-                        <div class="card-icon"><i class="bi bi-receipt"></i></div>
-                        <div>
-                            <h2 class="card-title">View Receipts</h2>
-                            <p class="card-text">Check all your tyre request receipts.</p>
-                        </div>
+                    <div class="icon-wrap">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">View Receipts</h3>
+                        <p class="card-text">Check all your tyre request receipts.</p>
                     </div>
                 </div>
 
-                <div class="card clickable" data-href="{{ route('driver.profile.edit') }}">
-                    <div class="card-row">
-                        <div class="card-icon"><i class="bi bi-person-gear"></i></div>
-                        <div>
-                            <h2 class="card-title">Manage Account</h2>
-                            <p class="card-text">Update your profile and account details.</p>
-                        </div>
+                <div class="action-card accent-orange clickable" data-href="{{ route('driver.profile.edit') }}">
+                    <div class="icon-wrap">
+                        <i class="bi bi-person-gear"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Manage Account</h3>
+                        <p class="card-text">Update your profile and account details.</p>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -110,7 +111,7 @@
                 <div class="image-overlay"></div>
                 <div class="image-content">
                     <h2 class="image-title">Smooth Rides Start Here</h2>
-                    <p class="image-desc">Manage your tyre requests — request, track approvals, and view receipts all in one place.</p>
+                    <p class="image-desc">Manage your tyre requests &mdash; request, track approvals, and view receipts all in one place.</p>
                 </div>
             </div>
         </div>
@@ -121,43 +122,202 @@
 
 @push('styles')
 <style>
-/* ===== Layout ===== */
-.dashboard-container {
-    max-width: 1200px;
+/* ===== Page Shell ===== */
+.driver-dashboard {
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 40px 20px;
-    margin-bottom: 100px;
+    padding: 56px 18px 72px;
+    position: relative;
 }
+.driver-dashboard::before,
+.driver-dashboard::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(241,247,255,0.7), rgba(255,255,255,0.85));
+    z-index: 0;
+    pointer-events: none;
+}
+.driver-dashboard > * { position: relative; z-index: 1; }
 
-/* ===== Welcome Section ===== */
-.welcome-section {
+/* ===== Welcome ===== */
+.welcome-strip {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 30px;
+    gap: 18px;
+    padding: 16px 18px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 6px 14px rgba(15,23,42,0.06);
+    margin-bottom: 20px;
 }
-.welcome-text {
-    font-size: 26px;
-    font-weight: bold;
-    color: #2563eb;
-}
+.avatar-wrap { position: relative; }
 .avatar-large {
-    width: 80px;
-    height: 80px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
-    border: 3px solid #2563eb;
+    border: 3px solid #0d6efd;
     object-fit: cover;
-    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 10px 24px rgba(13,110,253,0.18);
 }
-.avatar-large:hover {
-    transform: scale(1.1);
-    box-shadow: 0 8px 20px rgba(37,99,235,0.2);
+.hello {
+    margin: 0;
+    font-weight: 700;
+    font-size: 20px;
+    color: #1d4ed8;
 }
+.hello-sub { margin: 2px 0 0; color: #1e293b; font-weight: 600; }
+
+/* ===== Driver Info Card ===== */
+.driver-info-card {
+    position: relative;
+    background: url("{{ asset('assets/images/driver-information.png') }}") no-repeat center center/cover;
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-top: 6px;
+    margin-bottom: 26px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.20);
+    overflow: hidden;
+    color: #fff;
+    backdrop-filter: blur(4px);
+}
+.driver-info-card .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(6, 42, 85, 0.72), rgba(13, 110, 253, 0.62));
+    z-index: 1;
+}
+.driver-info-card * { position: relative; z-index: 2; }
+.driver-info-card:hover { transform: translateY(-3px); transition: transform 0.25s ease; }
+.info-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+.info-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px 22px;
+    font-size: 15px;
+}
+
+/* ===== Two Column Layout ===== */
+.dashboard-two-col {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+@media (min-width: 1024px) {
+    .dashboard-two-col {
+        flex-direction: row;
+        gap: 28px;
+        align-items: stretch;
+    }
+}
+.left-col { flex: 1.1; }
+.right-col { flex: 0.9; display: flex; align-items: stretch; }
+
+/* ===== Action Cards ===== */
+.cards-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.action-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 2px solid #e2e8f0;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    box-shadow: 0 6px 14px rgba(15,23,42,0.05);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    cursor: pointer;
+}
+.action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px rgba(15,23,42,0.12);
+}
+.action-card .icon-wrap {
+    height: 42px;
+    width: 42px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+.action-card .card-title {
+    font-size: 17px;
+    margin: 0 0 4px;
+    font-weight: 700;
+    color: #111827;
+}
+.action-card .card-text {
+    margin: 0;
+    color: #475569;
+    font-size: 13.5px;
+}
+
+.accent-blue { border-color: #b7d2ff; }
+.accent-blue .icon-wrap { background: linear-gradient(135deg, #0d6efd, #2563eb); box-shadow: 0 6px 14px rgba(13,110,253,0.18); }
+.accent-green { border-color: #c7f3d7; }
+.accent-green .icon-wrap { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 6px 14px rgba(34,197,94,0.18); }
+.accent-purple { border-color: #dbc8ff; }
+.accent-purple .icon-wrap { background: linear-gradient(135deg, #8b5cf6, #6b21a8); box-shadow: 0 6px 14px rgba(139,92,246,0.18); }
+.accent-orange { border-color: #f8d7b0; }
+.accent-orange .icon-wrap { background: linear-gradient(135deg, #f59e0b, #ea580c); box-shadow: 0 6px 14px rgba(234,88,12,0.18); }
+
+/* ===== Image Panel ===== */
+.image-panel {
+    position: relative;
+    height: 480px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.14);
+    background: #0d6efd;
+}
+.image-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.6s ease;
+}
+.image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.58));
+}
+.image-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 28px;
+    color: #fff;
+    justify-content: flex-end;
+}
+.image-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+.image-desc {
+    max-width: 460px;
+    color: rgba(255,255,255,0.9);
+}
+.image-panel:hover .image-bg { transform: scale(1.05); }
 
 /* ===== Flash Messages ===== */
 .flash-msg {
     position: fixed;
-    top: 70px;
+    top: 90px;
     right: 25px;
     padding: 12px 18px;
     border-radius: 6px;
@@ -175,209 +335,32 @@
     100% { opacity: 0; transform: translateY(-20px); }
 }
 
-/* ===== Driver Info Card ===== */
-.driver-info-card {
-    position: relative;
-    background: url("{{ asset('assets/images/driver-information.png') }}") no-repeat center center/cover;
-    border-radius: 16px;
-    padding: 28px;
-    margin-bottom: 40px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    color: #fff;
-    backdrop-filter: blur(5px);
-    transform: translateY(0);
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
-}
-
-/* Overlay to make text readable */
-.driver-info-card .card-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(31, 31, 31, 0.65), rgba(164, 164, 165, 0.65));
-    z-index: 1;
-    border-radius: inherit;
-}
-
-.driver-info-card * {
-    position: relative;
-    z-index: 2;
-}
-
-/* Hover effect */
-.driver-info-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 30px rgba(13, 110, 253, 0.25);
-}
-
-/* Title */
-.info-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 18px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* Info grid */
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 14px;
-    font-size: 16px;
-    color: #f1f5f9;
-}
-
 /* Fade-in animation */
-.fade-in {
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInCard 0.8s ease forwards;
-}
-
+.fade-in { animation: fadeInCard 0.8s ease forwards; opacity: 0; }
 @keyframes fadeInCard {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== Two Column Layout ===== */
-.dashboard-two-col {
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
+/* Responsive tweaks */
+@media (max-width: 992px) {
+    .image-panel { height: 340px; }
 }
-@media (min-width: 1024px) {
-    .dashboard-two-col {
-        flex-direction: row;
-        gap: 40px;
-        align-items: stretch;
-    }
-}
-.left-col, .right-col { flex: 1; }
-
-/* ===== Cards ===== */
-.cards-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-}
-.card {
-    background: linear-gradient(180deg, #0b1220, #111827);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    border-radius: 14px;
-    padding: 24px;
-    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    opacity: 0;
-    transform: translateX(-25px);
-}
-.card.in-view { opacity: 1; transform: translateX(0); }
-.card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(120% 120% at -10% -10%, rgba(37,99,235,.18), rgba(37,99,235,0) 50%);
-    opacity: 0;
-    transition: opacity 0.4s;
-    z-index: 0;
-}
-.card:hover::before { opacity: 1; }
-.card:hover {
-    transform: translateY(-4px);
-}
-.card-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    position: relative;
-    z-index: 1;
-}
-.card-icon {
-    height: 42px;
-    width: 42px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
-    color: #fff;
-    flex: 0 0 auto;
-    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
-}
-.card-icon i { font-size: 20px; line-height: 1; }
-.card-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #e2e8f0;
-    margin-bottom: 4px;
-}
-.card-text {
-    font-size: 15px;
-    color: #cbd5e1;
-}
-
-/* ===== Image Panel ===== */
-.image-panel {
-    position: relative;
-    height: 500px;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-.image-bg {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    transition: transform 0.6s ease;
-}
-.image-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.55));
-}
-.image-content {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 30px;
-    color: #fff;
-}
-.image-title {
-    font-size: 26px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-.image-desc {
-    max-width: 480px;
-    color: rgba(255,255,255,0.9);
-}
-.image-panel:hover .image-bg { transform: scale(1.05); }
-
-/* Responsive */
 @media (max-width: 768px) {
-    .dashboard-two-col { flex-direction: column; }
-    .image-panel { height: 320px; }
+    .driver-dashboard { padding: 22px 10px 60px; }
 }
 
 /* Notification Badge */
 .notif-badge {
     position: absolute;
-    top: 14px;
-    right: 16px;
+    top: 12px;
+    right: 12px;
     background: linear-gradient(145deg, #ef4444, #b91c1c);
     color: #fff;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -386,11 +369,10 @@
     z-index: 10;
 }
 @keyframes pulseBadge {
-    0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0.6); }
-    70%  { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+    0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+    70%  { transform: scale(1.12); box-shadow: 0 0 0 8px rgba(239,68,68,0); }
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0); }
 }
-
 </style>
 @endpush
 
@@ -407,24 +389,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, 4000);
 
-    // Animate cards
-    const cards = document.querySelectorAll('.card');
-    if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('in-view');
-                    obs.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.15 });
-        cards.forEach(card => observer.observe(card));
-    } else {
-        cards.forEach(card => card.classList.add('in-view'));
-    }
-
     // Card click navigation
-    document.querySelectorAll('.card.clickable').forEach(card => {
+    document.querySelectorAll('.action-card.clickable').forEach(card => {
         card.addEventListener('click', () => {
             const link = card.getAttribute('data-href');
             if (link) window.location.href = link;

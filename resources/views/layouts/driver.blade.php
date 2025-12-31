@@ -11,87 +11,158 @@
 
     @include('partials.theme')
     <style>
-      /* Driver-specific dark navbar */
-      .driver-navbar.navbar { background: linear-gradient(180deg, #0b1220, #111827) !important; border-bottom: 1px solid rgba(148,163,184,.16); box-shadow: 0 10px 28px rgba(2,6,23,.35); }
-      .driver-navbar .navbar-brand { color: #e2e8f0 !important; }
-      .driver-navbar .navbar-brand img { filter: brightness(1.1) contrast(1.05); }
-      .driver-navbar .nav-link { color: #cbd5e1 !important; font-weight: 600; border-radius: 8px; }
-      .driver-navbar .nav-link:hover, .driver-navbar .nav-link.active { background: rgba(59,130,246,.12); color: #ffffff !important; }
-      .driver-navbar .btn-link.nav-link { color: #fca5a5 !important; }
-      .driver-navbar .navbar-toggler { border-color: rgba(250, 250, 250, 0.35); }
-      .driver-navbar .navbar-toggler:focus { box-shadow: 0 0 0 .15rem rgba(59,130,246,.35); }
-      .driver-navbar .navbar-toggler-icon { filter: invert(1) brightness(1.2); }
+      :root {
+        --driver-blue: #0b4fb4;
+        --driver-blue-dark: #0a3f99;
+        --driver-text-light: #e8f0ff;
+        --nav-height: 78px;
+        --subnav-height: 56px;
+      }
+      body {
+        padding-top: calc(var(--nav-height) + var(--subnav-height));
+        background: #f5f7fb;
+      }
+
+      /* Top bar */
+      .driver-topbar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 1030;
+        background: var(--driver-blue);
+        color: #fff;
+        min-height: var(--nav-height);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+      }
+      .driver-topbar .inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        gap: 12px;
+      }
+      .driver-topbar .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .driver-topbar .brand img { height: 42px; width: auto; }
+      .driver-topbar .title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        letter-spacing: .25px;
+      }
+      .driver-topbar .status {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        font-size: 0.93rem;
+      }
+      .driver-topbar .status .muted { opacity: 0.9; }
+      .driver-topbar .logout-btn {
+        color: #fff;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.7);
+        background: transparent;
+        transition: background .18s ease, transform .12s ease, box-shadow .18s ease;
+      }
+      .driver-topbar .logout-btn:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+      }
+      .driver-topbar .logout-btn:focus { box-shadow: 0 0 0 .15rem rgba(255,255,255,0.35); }
+
+      /* Sub navigation */
+      .driver-subnav {
+        position: fixed;
+        top: var(--nav-height);
+        left: 0; right: 0;
+        z-index: 1025;
+        background: #ffffff;
+        min-height: var(--subnav-height);
+        border-bottom: 1px solid #e5e7eb;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+      }
+      .driver-subnav .links {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 26px;
+        height: var(--subnav-height);
+        font-weight: 700;
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      .driver-subnav a {
+        color: #0a0f1a;
+        text-decoration: none;
+        padding: 8px 4px 6px;
+        border-bottom: 3px solid transparent;
+      }
+      .driver-subnav a.active {
+        color: #0c8a1f;
+        border-color: #0c8a1f;
+      }
+      .driver-subnav a:hover { color: #0b4fb4; }
+
+      @media (max-width: 992px) {
+        body { padding-top: calc(var(--nav-height) + var(--subnav-height)); }
+        .driver-topbar .inner { flex-direction: column; align-items: flex-start; }
+        .driver-topbar .status { align-items: flex-start; }
+        .driver-subnav .links { flex-wrap: wrap; gap: 14px; padding: 6px 14px; justify-content: flex-start; }
+      }
     </style>
     @stack('styles')
 </head>
 <body>
-    {{-- Driver Navbar --}}
-    <nav class="navbar navbar-expand-lg navbar-dark driver-navbar fixed-top">
-        <div class="container">
-             <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('driver.dashboard') }}">
-             <img src="{{ asset('assets/images/logo2.png') }}" alt="logo"
-                 style="height:36px; width:auto; margin-right:15px; margin-bottom: 4px;">
-                <span>Driver Dashboard</span>
-            </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#driverNavbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="driverNavbar">
-                <ul class="navbar-nav ms-auto">
-                    {{-- Home Tab: explicit link to dashboard --}}
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('driver.dashboard') ? 'active' : '' }}" href="{{ route('driver.dashboard') }}">
-                          Home
-                        </a>
-                    </li>
-
-                    {{-- Receipts: safe link that checks available route names or falls back to URL --}}
-                    <li class="nav-item">
-                        @if (Route::has('driver.receipts'))
-                            <a class="nav-link {{ request()->routeIs('driver.receipts*') ? 'active' : '' }}" href="{{ route('driver.receipts') }}">Receipts</a>
-                        @else
-                            <a class="nav-link" href="{{ url('/driver/receipts') }}">Receipts</a>
-                        @endif
-                    </li>
-
-                    {{-- Request Tire --}}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('driver.requests.create') }}">
-                          Request Tire
-                        </a>
-                    </li>
-
-                    {{-- View Requests --}}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('driver.requests.index') }}">
-                         View Requests
-                        </a>
-                    </li>
-                    {{-- Manage Account --}}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('driver.profile.edit') }}">
-                            Manage Account
-                        </a>
-                    </li>
-
-                    {{-- Logout --}}
-                    <li class="nav-item">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="btn btn-link nav-link">
-                             Logout
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+    {{-- Top bar --}}
+    <header class="driver-topbar">
+        <div class="inner container-fluid">
+            <div class="brand">
+                <a href="{{ route('driver.dashboard') }}" aria-label="Home">
+                    <img src="{{ asset('assets/images/logo2.png') }}" alt="SLT-MOBITEL">
+                </a>
+                <span class="title">Driver Dashboard</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="status">
+                    <div id="driverCurrentDateTime">Loading time...</div>
+                    <div class="muted" id="driverLastUpdated">Last updated: —</div>
+                </div>
+                <form method="POST" action="{{ route('logout') }}" class="mb-0">
+                    @csrf
+                    <button type="submit" class="logout-btn">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </button>
+                </form>
             </div>
         </div>
-    </nav>
+    </header>
+
+    {{-- Sub navigation --}}
+    <div class="driver-subnav">
+        <div class="links container-fluid">
+            <a class="{{ request()->routeIs('driver.dashboard') ? 'active' : '' }}" href="{{ route('driver.dashboard') }}">Home</a>
+            @if (Route::has('driver.receipts'))
+                <a class="{{ request()->routeIs('driver.receipts*') ? 'active' : '' }}" href="{{ route('driver.receipts') }}">Receipts</a>
+            @else
+                <a href="{{ url('/driver/receipts') }}">Receipts</a>
+            @endif
+            <a class="{{ request()->routeIs('driver.requests.create') ? 'active' : '' }}" href="{{ route('driver.requests.create') }}">Request Tyre</a>
+            <a class="{{ request()->routeIs('driver.requests.index') ? 'active' : '' }}" href="{{ route('driver.requests.index') }}">View Requests</a>
+            <a class="{{ request()->routeIs('driver.profile.edit') ? 'active' : '' }}" href="{{ route('driver.profile.edit') }}">Manage Account</a>
+        </div>
+    </div>
 
     {{-- Page Content --}}
-    <div class="container mt-5 pt-4">
+    <div class="container mt-4">
         @yield('content')
     </div>
 
@@ -100,6 +171,31 @@
 
     {{-- Bootstrap JS (local) --}}
     <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var dateTimeEl = document.getElementById('driverCurrentDateTime');
+            var lastUpdatedEl = document.getElementById('driverLastUpdated');
+            if (dateTimeEl && lastUpdatedEl) {
+                var lastUpdatedSet = false;
+                var optionsDate = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+                var optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
+                var updateClock = function () {
+                    var now = new Date();
+                    var dateString = now.toLocaleDateString('en-US', optionsDate);
+                    var timeString = now.toLocaleTimeString('en-US', optionsTime);
+                    dateTimeEl.textContent = dateString + ' | ' + timeString;
+                    if (!lastUpdatedSet) {
+                        lastUpdatedEl.textContent = 'Last updated: ' + timeString;
+                        lastUpdatedSet = true;
+                    }
+                };
+
+                updateClock();
+                setInterval(updateClock, 1000);
+            }
+        });
+    </script>
 
     @stack('scripts')
 </body>
