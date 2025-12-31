@@ -18,6 +18,13 @@
             @enderror
         </div>
         <div class="mb-3">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $supplier->email) }}" placeholder="e.g. supplier@example.com">
+            @error('email')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="mb-3">
             <label>Address</label>
             <textarea name="address" class="form-control">{{ $supplier->address }}</textarea>
         </div>

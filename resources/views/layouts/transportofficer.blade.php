@@ -55,34 +55,7 @@
         </div>
     </nav>
 
-    {{-- Section header with tabs --}}
     <div class="container mt-5 pt-4">
-        <div class="card mb-3">
-            <div class="card-body d-flex flex-wrap align-items-center justify-content-between py-3">
-                <div class="me-3">
-                    <h1 class="h4 mb-1">@yield('page_title', 'Transport Officer Dashboard')</h1>
-                    <div class="text-muted small">Manage tire requests across statuses</div>
-                </div>
-                <ul class="nav nav-pills gap-2">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('transport_officer.pending') ? 'active' : '' }}" href="{{ route('transport_officer.pending') }}">
-                            <i class="bi bi-hourglass-split me-1"></i> Pending
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('transport_officer.approved') ? 'active' : '' }}" href="{{ route('transport_officer.approved') }}">
-                            <i class="bi bi-check2-circle me-1"></i> Approved
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('transport_officer.rejected') ? 'active' : '' }}" href="{{ route('transport_officer.rejected') }}">
-                            <i class="bi bi-x-circle me-1"></i> Rejected
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
         @yield('content')
     </div>
 

@@ -174,6 +174,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/receipt/create/{id}', [TransportOfficerController::class, 'createReceipt'])->name('receipt.create');
         Route::post('/receipt/store', [TransportOfficerController::class, 'storeReceipt'])->name('receipt.store');
+        Route::post('/receipt/send', [TransportOfficerController::class, 'sendReceiptEmail'])->name('receipt.send');
         Route::get('/receipts/{id}/pdf', [ReceiptController::class, 'generatePDF'])->name('receipts.pdf');
     });
 });

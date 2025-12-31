@@ -10,11 +10,11 @@ class SuppliersExport implements FromCollection, WithHeadings
 {
     public function collection()
     {
-        return Supplier::select('id', 'name', 'contact', 'address')->get();
+        return Supplier::select('id', 'name', 'contact', 'email', 'address', 'town')->get();
     }
 
     public function headings(): array
     {
-        return ['ID', 'Name', 'Contact', 'Address'];
+        return ['ID', 'Name', 'Contact', 'Email', 'Address', 'Town'];
     }
 }

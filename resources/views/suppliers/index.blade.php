@@ -12,7 +12,7 @@
 
     {{-- Search Bar --}}
     <div class="mb-3">
-        <input type="text" id="supplierSearch" class="form-control" placeholder="Search by name or contact...">
+        <input type="text" id="supplierSearch" class="form-control" placeholder="Search by name, contact, or email...">
     </div>
 
     <div class="table-responsive">
@@ -21,6 +21,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Contact</th>
+                    <th>Email</th>
                     <th>Address</th>
                     <th>Town</th>
                     <th>Actions</th>
@@ -31,6 +32,13 @@
                     <tr>
                         <td class="supplier-name">{{ $supplier->name }}</td>
                         <td class="supplier-contact">{{ $supplier->contact }}</td>
+                        <td class="supplier-email">
+                            @if($supplier->email)
+                                <a href="mailto:{{ $supplier->email }}" class="text-decoration-none">{{ $supplier->email }}</a>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
                         <td class="supplier-address">{{ $supplier->address }}</td>
                         <td class="supplier-town">{{ $supplier->town }}</td>
                         <td>
@@ -50,7 +58,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No suppliers found.</td>
+                        <td colspan="6" class="text-center text-muted py-4">No suppliers found.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -75,7 +83,8 @@
         rows.forEach(row => {
             const name = row.querySelector('.supplier-name')?.textContent.toLowerCase() ?? '';
             const contact = row.querySelector('.supplier-contact')?.textContent.toLowerCase() ?? '';
-            row.style.display = (name.includes(filter) || contact.includes(filter)) ? '' : 'none';
+            const email = row.querySelector('.supplier-email')?.textContent.toLowerCase() ?? '';
+            row.style.display = (name.includes(filter) || contact.includes(filter) || email.includes(filter)) ? '' : 'none';
         });
     });
     </script>
