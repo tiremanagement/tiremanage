@@ -13,7 +13,7 @@
     <style>
       /* Driver-specific dark navbar */
       .driver-navbar.navbar { background: linear-gradient(180deg, #0b1220, #111827) !important; border-bottom: 1px solid rgba(148,163,184,.16); box-shadow: 0 10px 28px rgba(2,6,23,.35); }
-      .driver-navbar .navbar-brand { color: #e2e8f0 !important; }
+      .driver-navbar .navbar-brand { color: #e6eaefff !important; }
       .driver-navbar .navbar-brand img { filter: brightness(1.1) contrast(1.05); }
       .driver-navbar .nav-link { color: #cbd5e1 !important; font-weight: 600; border-radius: 8px; }
       .driver-navbar .nav-link:hover, .driver-navbar .nav-link.active { background: rgba(59,130,246,.12); color: #ffffff !important; }
