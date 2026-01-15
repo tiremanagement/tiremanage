@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\TireRequest;
 use App\Models\Vehicle;
 use App\Models\Tire;
+use App\Models\Approval;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class TireRequestController extends Controller
@@ -61,7 +63,8 @@ class TireRequestController extends Controller
             'tire_count' => $validated['tire_count'],
             'damage_description' => $validated['damage_description'],
             'tire_images' => $images,
-            'status' => 'pending',
+            'status' => Approval::STATUS_PENDING,
+            'current_level' => Approval::LEVEL_SECTION_MANAGER,
             'delivery_place_office' => $validated['delivery_place_office'] ?? null,
             'delivery_place_street' => $validated['delivery_place_street'] ?? null,
             'delivery_place_town' => $validated['delivery_place_town'] ?? null,
@@ -88,25 +91,27 @@ class TireRequestController extends Controller
     }
 
     // Delete a tire request (only if pending)
-    public function destroy(TireRequest $request)
+    public function destroy($id)
     {
-        if ($request->user_id !== auth()->id()) {
+        $tireRequest = TireRequest::findOrFail($id);
+
+        if ($tireRequest->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        if ($request->status !== 'pending') {
+        if ($tireRequest->status !== 'pending' && $tireRequest->status !== Approval::STATUS_PENDING) {
             return redirect()->route('driver.requests.index')
                 ->with('error', 'Only pending requests can be deleted.');
         }
 
         // Delete images from storage
-        if ($request->tire_images && is_array($request->tire_images)) {
-            foreach ($request->tire_images as $img) {
-                \Storage::disk('public')->delete($img);
+        if ($tireRequest->tire_images && is_array($tireRequest->tire_images)) {
+            foreach ($tireRequest->tire_images as $img) {
+                Storage::disk('public')->delete($img);
             }
         }
 
-        $request->delete();
+        $tireRequest->delete();
 
         return redirect()->route('driver.requests.index')
             ->with('success', 'Tyre request deleted successfully.');
