@@ -241,6 +241,7 @@
     flex-direction: column;
     gap: 14px;
     height: 100%;
+    justify-content: space-between;
 }
 .action-card {
     background: #fff;
@@ -295,7 +296,8 @@
 .image-panel {
     position: relative;
     width: 100%;
-    height: 480px;
+    height: 100%;
+    min-height: 480px;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 12px 30px rgba(0,0,0,0.14);
