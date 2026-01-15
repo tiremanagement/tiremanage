@@ -126,7 +126,7 @@
 .driver-dashboard {
     max-width: 1180px;
     margin: 0 auto;
-    padding: 56px 18px 72px;
+    padding: 28px 18px 72px;
     position: relative;
 }
 .driver-dashboard::before,
@@ -207,22 +207,35 @@
     display: flex;
     flex-direction: column;
     gap: 22px;
+    width: 100%;
 }
 @media (min-width: 1024px) {
     .dashboard-two-col {
         flex-direction: row;
         gap: 28px;
         align-items: stretch;
+        width: 100%;
     }
 }
-.left-col { flex: 1.1; }
-.right-col { flex: 0.9; display: flex; align-items: stretch; }
+.left-col {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.right-col {
+    flex: 1 1 50%;
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+}
 
 /* ===== Action Cards ===== */
 .cards-stack {
     display: flex;
     flex-direction: column;
     gap: 14px;
+    height: 100%;
 }
 .action-card {
     background: #fff;
@@ -276,11 +289,14 @@
 /* ===== Image Panel ===== */
 .image-panel {
     position: relative;
+    width: 100%;
     height: 480px;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 12px 30px rgba(0,0,0,0.14);
     background: #0d6efd;
+    display: flex;
+    flex-direction: column;
 }
 .image-bg {
     position: absolute;
@@ -317,15 +333,17 @@
 /* ===== Flash Messages ===== */
 .flash-msg {
     position: fixed;
-    top: 90px;
-    right: 25px;
-    padding: 12px 18px;
-    border-radius: 6px;
+    top: 140px;
+    right: 20px;
+    left: auto;
+    padding: 14px 20px;
+    border-radius: 8px;
     font-weight: bold;
     color: white;
-    z-index: 1000;
+    z-index: 1020;
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     animation: fadeOut 4s forwards;
+    max-width: 400px;
 }
 .flash-success { background: linear-gradient(135deg, #16a34a, #22c55e); }
 .flash-error { background: linear-gradient(135deg, #dc2626, #b91c1c); }
@@ -342,11 +360,28 @@
 }
 
 /* Responsive tweaks */
+@media (max-width: 1024px) {
+    .dashboard-two-col {
+        flex-direction: column;
+    }
+    .image-panel { height: 360px; }
+    .right-col { min-height: 360px; }
+}
 @media (max-width: 992px) {
     .image-panel { height: 340px; }
+    .right-col { min-height: 340px; }
 }
 @media (max-width: 768px) {
     .driver-dashboard { padding: 22px 10px 60px; }
+    .dashboard-two-col { gap: 18px; }
+    .image-panel { height: 280px; }
+    .right-col { min-height: 280px; }
+    .left-col {
+        flex: 1 1 100%;
+    }
+    .right-col {
+        flex: 1 1 100%;
+    }
 }
 
 /* Notification Badge */

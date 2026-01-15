@@ -117,6 +117,11 @@
         .driver-topbar .status { align-items: flex-start; }
         .driver-subnav .links { flex-wrap: wrap; gap: 14px; padding: 6px 14px; justify-content: flex-start; }
       }
+
+      /* Content spacing below navbar */
+      .page-content-wrapper {
+        margin-top: 150px;
+      }
     </style>
     @stack('styles')
 </head>
@@ -162,8 +167,10 @@
     </div>
 
     {{-- Page Content --}}
-    <div class="container mt-4">
-        @yield('content')
+    <div class="page-content-wrapper">
+        <div class="container">
+            @yield('content')
+        </div>
     </div>
 
     {{-- Footer --}}
