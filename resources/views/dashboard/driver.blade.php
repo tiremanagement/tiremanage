@@ -10,9 +10,14 @@
     $email = $driver->user->email ?? $user?->email ?? 'N/A';
     $mobile = $driver->mobile ?? 'N/A';
     $idNumber = $driver->id_number ?? 'N/A';
-    $profilePhoto = $driver && $driver->profile_photo
-        ? asset('storage/' . $driver->profile_photo)
-        : asset('assets/images/default-profile.jpg');
+
+    // Handle profile photo with proper default fallback
+    if ($driver && $driver->profile_photo && file_exists(public_path('storage/' . $driver->profile_photo))) {
+        $profilePhoto = asset('storage/' . $driver->profile_photo);
+    } else {
+        $profilePhoto = asset('assets/images/default-profile.jpg');
+    }
+
     $now = now();
 
     $unreadReceipts = \App\Models\Receipt::whereHas('tireRequest', function ($query) {
